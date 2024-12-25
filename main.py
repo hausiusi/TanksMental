@@ -1,11 +1,11 @@
 from ursina import *
 import math
-from src.maps import load_map
+from src.levels import load_map
 from src.player import Player
 from src.npc import EnemyTank
 from src.game import Game
 from src.controller import KeyboardController, PS4Controller
-from src.types import CollisionEffect
+from src.types import CollisionEffect, EntityType
 
 app = Ursina()
 camera.orthographic = False
@@ -21,13 +21,12 @@ player1 = Player(
     game,
     controller=controller,
     player_id=0,
-    bullet_speed = 10,
     model='quad',
     texture='assets/images/tank0.png',
     position=(-2, -5),
     z=0,
     scale=(0.8, 1),
-    color=color.red,
+    color=color.pink,
     collider='box',
     rigidbody=True,
     bullets_on_screen=0,
@@ -44,14 +43,13 @@ player1 = Player(
 player2 = Player(
     game,
     controller=controller,
-    bullet_speed = 10,
     player_id=1,                  
     model='quad',
     texture='assets/images/tank0.png',
     position=(2, -5),
     z=0,
     scale=(0.8, 1),
-    color=color.blue,
+    color=color.black,
     collider='box',
     rigidbody=True,
     bullets_on_screen=0,
@@ -68,7 +66,6 @@ player2 = Player(
 player3 = Player(
     game,
     controller=keyboard,
-    bullet_speed = 10,
     player_id=2,                  
     model='quad',
     texture='assets/images/tank0.png',
@@ -92,7 +89,6 @@ player3 = Player(
 
 enemy_tank1 = EnemyTank(
     game=game,
-    bullet_speed = 3,
     model='quad',
     texture='assets/images/tank0.png',
     position=(-6, 5),
@@ -117,7 +113,6 @@ enemy_tank1 = EnemyTank(
 
 enemy_tank2 = EnemyTank(
     game=game,
-    bullet_speed = 3,
     model='quad',
     texture='assets/images/tank0.png',
     position=(-5, 5),
@@ -142,7 +137,6 @@ enemy_tank2 = EnemyTank(
 
 enemy_tank3 = EnemyTank(
     game=game,
-    bullet_speed = 3,
     model='quad',
     texture='assets/images/tank0.png',
     position=(6, 5),
@@ -167,7 +161,6 @@ enemy_tank3 = EnemyTank(
 
 enemy_tank4 = EnemyTank(
     game=game,
-    bullet_speed = 3,
     model='quad',
     texture='assets/images/tank0.png',
     position=(5, 5),
@@ -191,7 +184,6 @@ enemy_tank4 = EnemyTank(
 
 enemy_tank5 = EnemyTank(
     game=game,
-    bullet_speed = 3,
     model='quad',
     texture='assets/images/tank0.png',
     position=(4, 5),
@@ -213,10 +205,6 @@ enemy_tank5 = EnemyTank(
     remove_limit=3
 )
 
-bullet_speed = 10
-max_bullets = 3
-bullets_on_screen = 0
-
 tile_size = 1
 
 def create_tile_map():
@@ -235,7 +223,8 @@ def create_tile_map():
                 damaging = 0
                 collision_effect = CollisionEffect.NO_EFFECT
                 effect_strength = 0
-                name=""
+                name = ""
+                entity_type=EntityType.TERRAIN
 
                 # Create a tile (Entity with Quad mesh)
                 if val == 1:
@@ -281,6 +270,7 @@ def create_tile_map():
                 elif val == 8:
                     tile_texture = 'assets/images/gas_station0.png'
                     collision_effect = CollisionEffect.NO_EFFECT
+                    entity_type = EntityType.BASE
                     takes_hit = True
                     durability = 1
                     name = f'gas_station_{x}_{y}'
@@ -288,6 +278,7 @@ def create_tile_map():
                 tile = Entity(
                     name=name,
                     model='quad',
+                    entity_type=entity_type,
                     z = 0,                    
                     texture=tile_texture,  # Apply the texture to each tile
                     scale=(tile_size - 0.001, tile_size - 0.001),  # Set the tile size
@@ -353,12 +344,18 @@ def refresh_stats():
 
 timer_counter = 0
 update_interval = 0.1
+is_game_over = False
 
 def update():
 
     global is_edit_mode
     global timer_counter
     global update_interval
+    global is_game_over
+
+    if is_game_over:
+        return
+    
     if is_edit_mode:
         return  # Skip movement logic when in edit mode
 
@@ -382,12 +379,14 @@ def update():
                         collided_entity.durability -= bullet.hit_damage
                         if collided_entity.durability <= 0:
                             if hasattr(collided_entity, 'is_tank'):
-                                collided_entity.check_destroy()
-                                bullet.owner.kills += 1
-                                #game.show_game_over()
+                                    if not collided_entity.is_exploded:
+                                        bullet.owner.kills += 1
+                                        collided_entity.check_destroy()
                             else:
                                 destroy(collided_entity)
-                        if hasattr(collided_entity, 'is_tank'):
+                                if collided_entity.entity_type == EntityType.BASE:
+                                    game.show_game_over()
+                        if hasattr(collided_entity, 'is_tank') and not collided_entity.is_exploded:
                             bullet.owner.tanks_damage_dealt += bullet.hit_damage
                         else:
                             bullet.owner.other_damage_dealt += bullet.hit_damage

@@ -3,8 +3,8 @@ from ursina import *
 class Bullet:
     def __init__(self):
         self.bullets = [
-            Entity(model='quad', texture='assets/images/bullet0.png', color=color.yellow, scale=(0.1, 0.1), z=-0.1, visible=False, hit_damage=1, max_bullets=2),
-            Entity(model='quad', texture='assets/images/bullet1.png', color=color.yellow, scale=(0.15, 0.15), z=-0.1, visible=False, hit_damage=2, max_bullets=1)
+            Entity(model='quad', texture='assets/images/bullet0.png', color=color.yellow, scale=(0.1, 0.1), z=-0.1, visible=False, hit_damage=1, max_bullets=2, speed=10),
+            Entity(model='quad', texture='assets/images/bullet1.png', color=color.yellow, scale=(0.15, 0.15), z=-0.1, visible=False, hit_damage=2, max_bullets=1, speed=8)
         ]
 
         self.chosen_bullet = 0
@@ -29,8 +29,8 @@ class Bullet:
             offset_y = math.cos(math.radians(owner.rotation_z)) * 0.5  # Move 0.5 units forward in y
             bullet.position = owner.position + Vec3(offset_x, offset_y, 0)
             bullet.visible = True 
-            bullet.velocity = Vec3(sin(math.radians(owner.rotation_z)) * owner.bullet_speed,
-                                cos(math.radians(owner.rotation_z)) * owner.bullet_speed, 0)  # Set bullet velocity
+            bullet.velocity = Vec3(sin(math.radians(owner.rotation_z)) * owner.bullet.bullet.speed,
+                                cos(math.radians(owner.rotation_z)) * owner.bullet.bullet.speed, 0)  # Set bullet velocity
             bullet.owner = owner
             owner.bullets_on_screen += 1
             bullet.hit_damage = self.bullet.hit_damage 

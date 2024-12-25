@@ -1,6 +1,6 @@
 from ursina import *
 from src.settings import Settings
-from src.types import CollisionEffect
+from src.types import CollisionEffect, EntityType
 
 class Game:
     def __init__(self):
@@ -10,6 +10,7 @@ class Game:
         self.left_edge = -0.5 * aspect_ratio
         self.right_edge = 0.5 * aspect_ratio
         self.no_barrier_entities = []
+        self.over = False
 
         self.directions = {
             # Multiple variants for the same directions
@@ -25,7 +26,8 @@ class Game:
             'a': Vec3(-1, 0, 0),  # Left
         }
 
-        self.max_enemy_tanks = 30
+        self.max_enemy_tanks_count = 30
+        self.enemy_tanks_count = 5
 
     def update_no_barrier_entities(self):
         self.no_barrier_entities = [e for e in scene.entities if hasattr(e, "collision_effect") and e.collision_effect != CollisionEffect.BARRIER]
@@ -47,6 +49,7 @@ class Game:
         color=color.red,            
         origin=(0, 0)
         )
+        self.over = True
         return background, game_over_text
 
     def is_on_screen(self, entity: Entity):
@@ -102,6 +105,25 @@ class Game:
         entity.position = original_position
 
         return collided_entities
+    
+    def respawn(self, entity):
+        if self.over:
+            return
+        
+        if entity.entity_type == EntityType.PLAYER_TANK:
+            entity.position = entity.initial_position
+            return
+
+        positions = list(range(self.settings.screen_left, self.settings.screen_right))
+        random.shuffle(positions)
+        
+        for i in positions:
+            position = (i, self.settings.screen_top)
+            entity.position = position
+            collided_entities = self.get_collided_entities_at_position(entity, position)
+            if len(collided_entities) == 0:
+                print("Tank has been respawned!")
+                break
     
     def get_collided_barriers(self, entity : Entity):
         colliding_entities = []

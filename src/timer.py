@@ -25,7 +25,7 @@ class Timer:
 
             self.timer = 0
 
-    def start(self, effect):
+    def start(self, effect=None):
         if self.is_on:
             return
         self.effect = effect

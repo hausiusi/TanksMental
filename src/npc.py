@@ -2,11 +2,12 @@ from ursina import *
 from src.game import Game
 from src.healthbar import HealthBar
 from src.tank import Tank
+from src.types import EntityType
 import random
 
 class EnemyTank(Tank):
     def __init__(self, game : Game, **kwargs):
-        super().__init__(game, **kwargs)
+        super().__init__(game, entity_type=EntityType.ENEMY_TANK, **kwargs)
         self.game = game
         self.frame_counter = 0
         self.next_turn_frames = random.randint(100, 1000)

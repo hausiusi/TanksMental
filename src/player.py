@@ -3,14 +3,18 @@ from src.game import Game
 from src.healthbar import HealthBar
 from src.tank import Tank
 from src.controller import BaseController
+from src.types import EntityType
 
 class Player(Tank):
     def __init__(self, game : Game, controller: BaseController, player_id: int, **kwargs):
-        super().__init__(game, **kwargs)
+        super().__init__(game, entity_type=EntityType.PLAYER_TANK, **kwargs)
         self.game = game
         self.controller = controller
-        self.player_id = player_id
+        self.player_id = player_id        
+        self.initial_position = self.position
         self.controller.initialize_controller()
+        self.bullet_switch_speed = 0.3
+        self.last_bullet_switch = 0
 
         stat_items = {"player_id" : "Player", 
                       "health" : "Health", 
@@ -62,6 +66,9 @@ class Player(Tank):
             pos_y -= 0.02
 
     def update(self):
+        if self.game.over:
+            return
+        
         movement_distance = 0.5
         direction = ""
         buttons_state = self.controller.get_buttons_state(self.player_id)
@@ -81,8 +88,10 @@ class Player(Tank):
         elif not buttons_state['shoot']:
             self.can_shoot = True
 
-        if buttons_state['next_bullet']:
+        self.last_bullet_switch += time.dt
+        if buttons_state['next_bullet'] and self.last_bullet_switch > self.bullet_switch_speed:
             self.bullet.next_bullet_variant()
+            self.last_bullet_switch = 0
 
         if not self.is_exploded:
             self.health_bar.update_health(self.durability)

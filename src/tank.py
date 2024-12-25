@@ -1,9 +1,10 @@
 from ursina import *
 from src.game import Game
 from src.healthbar import HealthBar
-from src.types import CollisionEffect
+from src.types import CollisionEffect, EntityType, DropEffect
 from src.timer import Timer
 from src.bullet import Bullet
+from src.drops import randomize_drop
 
 
 class Tank(Entity):
@@ -42,6 +43,10 @@ class Tank(Entity):
     @property
     def bullet_hit_damage(self):
         return self.bullet.bullet.hit_damage
+    
+    @property
+    def bullet_speed(self):
+        return self.bullet.bullet.speed
     
     def apply_burn_damage(self, effect):
         self.texture = "assets/images/tank0_burning.png"
@@ -93,17 +98,30 @@ class Tank(Entity):
             movement_is_allowed = True
         else:
             for collided_entity in collided_entities:
-                if hasattr(collided_entity, 'collision_effect'):
+                if collided_entity.entity_type == EntityType.TERRAIN:
+                    if hasattr(collided_entity, 'collision_effect'):
+                        if collided_entity.collision_effect == CollisionEffect.BARRIER:
+                            movement_is_allowed = False
+                            break
+                        if collided_entity.collision_effect == CollisionEffect.SLOW_DOWN:
+                            if not self.wet_damage_timer.is_on:
+                                self.slow_down_timer.start(collided_entity.effect_strength)
+                        elif collided_entity.collision_effect == CollisionEffect.DAMAGE_BURN:
+                            self.burn_damage_timer.start(collided_entity.effect_strength)
+                        elif collided_entity.collision_effect == CollisionEffect.DAMAGE_WET:
+                            self.wet_damage_timer.start(collided_entity.effect_strength)
+                elif collided_entity.entity_type == EntityType.SUPPLY_DROP:
+                    if collided_entity.drop_effect == DropEffect.MISSILE_DAMAGE_INCREASE:
+                        self.bullet.bullet.hit_damage += 1
+                    if collided_entity.drop_effect == DropEffect.MISSILE_RATE_INCREASE:
+                        self.bullet.bullet.max_bullets += 1
+                    if collided_entity.drop_effect == DropEffect.MISSILE_SPEED_INCREASE:
+                        self.bullet.bullet.speed += 1
+                    destroy(collided_entity)
+                elif collided_entity.entity_type == EntityType.ENEMY_TANK or collided_entity.entity_type == EntityType.PLAYER_TANK:
                     if collided_entity.collision_effect == CollisionEffect.BARRIER:
                         movement_is_allowed = False
                         break
-                    if collided_entity.collision_effect == CollisionEffect.SLOW_DOWN:
-                        if not self.wet_damage_timer.is_on:
-                            self.slow_down_timer.start(collided_entity.effect_strength)
-                    elif collided_entity.collision_effect == CollisionEffect.DAMAGE_BURN:
-                        self.burn_damage_timer.start(collided_entity.effect_strength)
-                    elif collided_entity.collision_effect == CollisionEffect.DAMAGE_WET:
-                        self.wet_damage_timer.start(collided_entity.effect_strength)
         
         if movement_is_allowed:
             next_position = self.position + direction_vector * (time.dt * self.speed)
@@ -119,13 +137,33 @@ class Tank(Entity):
             self.rotation_z = -90
 
     def update(self):
+        if self.game.over:
+            return
+        
         self.burn_damage_timer.update()
         self.wet_damage_timer.update()
         self.slow_down_timer.update()
         if self.is_exploded:
             self.remove_counter += time.dt
             if self.remove_counter > self.remove_limit:
-                destroy(self)
+                if self.game.max_enemy_tanks_count > self.game.enemy_tanks_count:
+                    self.game.enemy_tanks_count += 1
+                    print("Respawning")
+                    tmp_position = self.position
+                    self.game.respawn(self)
+                    self.texture = "assets/images/tank0.png"
+                    self.is_exploded = False
+                    self.remove_counter = 0
+                    self.durability = self.health_bar.max_health # Filter enemy tank...
+                    randomize_drop(tmp_position)
+                    
+                    # Enemy tank starts from the top row
+                    # Player tank starts from near the base
+                    # Consider making the list of tanks per level and witdraw tanks from there when respowning. 
+                    # (means removing the existing entity and withdrawing others)
+                else:
+                    destroy(self)
+
 
     def __move(self, next_position):
         if self.game.is_position_on_screen(next_position):
