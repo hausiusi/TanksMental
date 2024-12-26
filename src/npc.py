@@ -34,7 +34,7 @@ class EnemyTank(Tank):
             if self.bullets_on_screen < 0:
                 self.bullets_on_screen = 0
                 
-            self.bullet.shoot_bullet(self)
+            self.ammunition.shoot_bullet(self)
             self.bullet_interval_counter = 0
             self.health_bar.update_health(self.durability)
 

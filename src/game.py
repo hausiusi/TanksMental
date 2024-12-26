@@ -38,13 +38,16 @@ class Game:
     def show_game_over(self):
         background = Entity(
         model='quad',
-        scale=(1.5, 1),             
-        color=color.black66,        
+        texture='assets/images/black.png',
+        scale=(5, 1),          
+        #color=color.Color(1, 1, 1, 0.5),
+        z=-0.04,       
         position=(0, 0)             
         )
         game_over_text = Text(
         text='Game Over',            
-        scale=2,                    
+        scale=2,
+        z=-0.03,                    
         position=(0, 0),            
         color=color.red,            
         origin=(0, 0)

@@ -3,32 +3,9 @@ from src.game import Game
 from src.healthbar import HealthBar
 from src.types import CollisionEffect, EntityType, DropEffect
 from src.timer import Timer
-from src.bullet import Bullet
+from src.ammunition import AmmoCatalog
 from src.drops import randomize_drop
-
-class WetEffect(Entity):
-    def __init__(self, parent_entity=None, **kwargs):
-        super().__init__(
-            parent=parent_entity,
-            texture='assets/images/wet_effect.png',
-            model='quad',
-            color=color.Color(1, 1, 1, 0.5),
-            z=-0.01,
-            visible=False,
-            **kwargs
-        )
-
-class FireEffect(Entity):
-    def __init__(self, parent_entity=None, **kwargs):
-        super().__init__(
-            parent=parent_entity,
-            texture='assets/images/fire_effect.png',
-            model='quad',
-            color=color.Color(1, 1, 1, 0.5),
-            z=-0.01,
-            visible=False,
-            **kwargs
-        )
+from src.effects import WetEffect, FireEffect
 
 class Tank(Entity):
     def __init__(self, game : Game, **kwargs):
@@ -47,11 +24,9 @@ class Tank(Entity):
         self.wet_damage_timer = Timer(timeout=10, counts=1, tick_callback=self.apply_wet_damage, end_callback=self.stop_wet_damage)
         self.slow_down_timer = Timer(timeout=0.2, counts=1, tick_callback=self.apply_slow_down, end_callback=self.stop_slow_down)
 
+        self.ammunition = AmmoCatalog(self)
         self.water_effect = WetEffect(self)
         self.fire_effect = FireEffect(self)
-        self.bullet = Bullet()
-        
-        
 
     @property
     def total_damage_dealt(self):
@@ -67,15 +42,15 @@ class Tank(Entity):
     
     @property
     def bullets_max(self):
-        return self.bullet.bullet.max_bullets
+        return self.ammunition.bullet.max_bullets
     
     @property
     def bullet_hit_damage(self):
-        return self.bullet.bullet.hit_damage
+        return self.ammunition.bullet.hit_damage
     
     @property
     def bullet_speed(self):
-        return self.bullet.bullet.speed        
+        return self.ammunition.bullet.speed        
     
     def apply_burn_damage(self, effect):
         self.fire_effect.visible = True
@@ -141,11 +116,11 @@ class Tank(Entity):
                             self.wet_damage_timer.start(collided_entity.effect_strength)
                 elif collided_entity.entity_type == EntityType.SUPPLY_DROP:
                     if collided_entity.drop_effect == DropEffect.MISSILE_DAMAGE_INCREASE:
-                        self.bullet.bullet.hit_damage += 1
+                        self.ammunition.bullet.hit_damage += 1
                     if collided_entity.drop_effect == DropEffect.MISSILE_RATE_INCREASE:
-                        self.bullet.bullet.max_bullets += 1
+                        self.ammunition.bullet.max_bullets += 1
                     if collided_entity.drop_effect == DropEffect.MISSILE_SPEED_INCREASE:
-                        self.bullet.bullet.speed += 1
+                        self.ammunition.bullet.speed += 1
                     destroy(collided_entity)
                 elif collided_entity.entity_type == EntityType.ENEMY_TANK or collided_entity.entity_type == EntityType.PLAYER_TANK:
                     if collided_entity.collision_effect == CollisionEffect.BARRIER:

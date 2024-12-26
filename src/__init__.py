@@ -8,5 +8,6 @@ from src.healthbar import HealthBar
 from src.tank import Tank
 from src.npc import EnemyTank
 from src.timer import Timer
-from src.bullet import Bullet
+from src.ammunition import AmmoCatalog
 from src.drops import SupplyDrop, GunDrop, FastBulletDrop, randomize_drop
+from src.effects import *

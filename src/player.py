@@ -83,14 +83,14 @@ class Player(Tank):
         self.move(direction, movement_distance)            
 
         if buttons_state['shoot'] and self.can_shoot == True and self.bullets_on_screen < self.bullets_max:
-            self.bullet.shoot_bullet(self)
+            self.ammunition.shoot_bullet(self)
             self.can_shoot = False
         elif not buttons_state['shoot']:
             self.can_shoot = True
 
         self.last_bullet_switch += time.dt
         if buttons_state['next_bullet'] and self.last_bullet_switch > self.bullet_switch_speed:
-            self.bullet.next_bullet_variant()
+            self.ammunition.next_bullet_variant()
             self.last_bullet_switch = 0
 
         if not self.is_exploded:

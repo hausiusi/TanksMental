@@ -43,7 +43,7 @@ player1 = Player(
 player2 = Player(
     game,
     controller=controller,
-    player_id=1,                  
+    player_id=0,                  
     model='quad',
     texture='assets/images/player_tank.png',
     position=(2, -5),
@@ -289,7 +289,8 @@ def create_tile_map():
                     damaging=damaging,
                     collision_effect=collision_effect,
                     effect_strength=effect_strength,
-                    render_queue=1
+                    render_queue=1,
+                    color = color.Color(1,1,1,1)
                 )    
 
 
