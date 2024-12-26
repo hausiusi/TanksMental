@@ -4,6 +4,7 @@ from src.healthbar import HealthBar
 from src.tank import Tank
 from src.types import EntityType
 import random
+from src.levels import load_npcs
 
 class EnemyTank(Tank):
     def __init__(self, game : Game, **kwargs):
@@ -40,3 +41,83 @@ class EnemyTank(Tank):
 
         super().update()
         
+
+class NpcSpawner:
+    def __init__(self, game:Game):
+        self.game = game
+        self.npc_pools = load_npcs(self.game.current_level)
+        self.spawned_count = 0
+        self.npc_pool_index = 0
+
+    def __load_npc_pool(self):
+        if len(self.npc_pools) <= self.npc_pool_index:
+            return False
+        
+        self.npc_pool = self.npc_pools[self.npc_pool_index]
+        self.max_npcs_at_once = self.npc_pool['at_once']
+        self.npcs_available = self.npc_pool['count']
+        return True
+
+    def spawn_initial_npcs(self):
+        if not self.__load_npc_pool():
+            return
+
+        # TODO: Put this in while and use only one for loop
+        spawn_count = min(self.npcs_available, self.max_npcs_at_once)
+        for i in range(spawn_count):
+            enemy_tank = self.create_npc()
+            self.game.spawn(enemy_tank)
+            self.spawned_count += 1
+            self.npcs_available -= 1
+
+        if self.npcs_available == 0: # NPC pool is empty
+            self.npc_pool_index += 1
+            self.__load_npc_pool(self)
+        if self.spawned_count < self.max_npcs_at_once:
+            for i in range(self.max_npcs_at_once - self.spawned_count):
+                enemy_tank = self.create_npc()
+                self.game.spawn(enemy_tank)
+                self.spawned_count += 1
+                self.npcs_available -= 1
+
+    def spawn_more(self):
+        if self.npcs_available == 0:
+            self.npc_pool_index += 1
+            if not self.__load_npc_pool():
+                return
+        
+        enemy_tank = self.create_npc()
+        self.game.spawn(enemy_tank)
+        self.spawned_count += 1
+        self.npcs_available -= 1
+        print(f"Spawned {enemy_tank.name}. In total {self.spawned_count} NPCs spawned. There are {self.npcs_available} left in the pool")
+        
+    
+    def create_npc(self) -> Entity:
+        enemy_tank = EnemyTank(
+                name=f'EnemyTank{self.spawned_count}',
+                game=self.game,
+                on_destroy=self.spawn_more,
+                model='quad',
+                texture=self.npc_pool['texture'],
+                visible=False,
+                z=0,
+                scale=self.npc_pool['scale'],
+                color=self.npc_pool['color'],
+                collider='box',
+                rigidbody=True,
+                takes_hit=True,
+                durability=self.npc_pool['durability'],
+                is_tank=True,
+                bullets_on_screen=0,
+                can_shoot=True,
+                max_speed=self.npc_pool['max_speed'],
+                direction=0,
+                is_exploded=False,
+                remove_counter=0,
+                remove_limit=1
+            )
+        enemy_tank.ammunition.choose_bullet(self.npc_pool['chosen_bullet'])
+        enemy_tank.ammunition.bullet.max_bullets = self.npc_pool['max_bullets']
+
+        return enemy_tank

@@ -28,6 +28,8 @@ class Game:
 
         self.max_enemy_tanks_count = 30
         self.enemy_tanks_count = 5
+        self.current_level = 0
+        
 
     def update_no_barrier_entities(self):
         self.no_barrier_entities = [e for e in scene.entities if hasattr(e, "collision_effect") and e.collision_effect != CollisionEffect.BARRIER]
@@ -109,12 +111,13 @@ class Game:
 
         return collided_entities
     
-    def respawn(self, entity):
+    def spawn(self, entity):
         if self.over:
             return
         
         if entity.entity_type == EntityType.PLAYER_TANK:
             entity.position = entity.initial_position
+            print("Player has been recovered")
             return
 
         positions = list(range(self.settings.screen_left, self.settings.screen_right))
@@ -125,7 +128,8 @@ class Game:
             entity.position = position
             collided_entities = self.get_collided_entities_at_position(entity, position)
             if len(collided_entities) == 0:
-                print("Tank has been respawned!")
+                print("Tank has been spawned!")
+                entity.visible = True
                 break
     
     def get_collided_barriers(self, entity : Entity):

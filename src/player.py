@@ -12,6 +12,7 @@ class Player(Tank):
         self.controller = controller
         self.player_id = player_id        
         self.initial_position = self.position
+        self.initial_texture = self.texture
         self.controller.initialize_controller()
         self.bullet_switch_speed = 0.3
         self.last_bullet_switch = 0
@@ -65,10 +66,23 @@ class Player(Tank):
             self.stat_text_pairs.append((name_text, value_text))
             pos_y -= 0.02
 
+    def respawn(self):
+        self.game.spawn(self)
+        self.is_exploded = False
+        self.texture = "assets/images/player_tank.png"
+        self.remove_counter = 0
+        self.durability = self.health_bar.max_health
+        self.rotation_z = 0 # Respawn pointing up
+
     def update(self):
         if self.game.over:
             return
         
+        super().update()
+
+        if self.is_exploded:
+            return
+
         movement_distance = 0.5
         direction = ""
         buttons_state = self.controller.get_buttons_state(self.player_id)
@@ -95,8 +109,6 @@ class Player(Tank):
 
         if not self.is_exploded:
             self.health_bar.update_health(self.durability)
-
-        super().update()
 
     def refresh_stats(self):
         for stat_text_pair in self.stat_text_pairs:

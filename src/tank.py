@@ -78,10 +78,13 @@ class Tank(Entity):
         self.affected_speed = 0
         self.slow_down_timer.stop()
 
-    def check_destroy(self, destroy='assets/images/tank0_explode.png'):
+    def check_destroy(self, texture='assets/images/tank0_explode.png'):
         if self.durability <= 0:
-            self.texture = destroy
+            self.texture = texture
             self.is_exploded = True
+
+    def respawn(self):
+        raise Exception("We implement respawn method of Tank entity in derived classes")
 
     def move(self, direction, movement_distance):
         """Move the enemy tank in the specified direction if no collision is detected."""
@@ -150,24 +153,13 @@ class Tank(Entity):
         if self.is_exploded:
             self.remove_counter += time.dt
             if self.remove_counter > self.remove_limit:
-                if self.game.max_enemy_tanks_count > self.game.enemy_tanks_count:
-                    self.game.enemy_tanks_count += 1
-                    print("Respawning")
-                    tmp_position = self.position
-                    self.game.respawn(self)
-                    self.texture = self.healthy_texture
-                    self.is_exploded = False
-                    self.remove_counter = 0
-                    self.durability = self.health_bar.max_health # Filter enemy tank...
-                    randomize_drop(tmp_position)
-                    
-                    # Enemy tank starts from the top row
-                    # Player tank starts from near the base
-                    # Consider making the list of tanks per level and witdraw tanks from there when respowning. 
-                    # (means removing the existing entity and withdrawing others)
-                else:
+                tmp_position = self.position
+                if self.entity_type is not EntityType.PLAYER_TANK:
+                    print(f"{self.name} has been destroyed")
                     destroy(self)
-
+                else:
+                    self.respawn()
+                randomize_drop(tmp_position)
 
     def __move(self, next_position):
         if self.game.is_position_on_screen(next_position):

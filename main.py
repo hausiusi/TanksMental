@@ -6,6 +6,8 @@ from src.npc import EnemyTank
 from src.game import Game
 from src.controller import KeyboardController, PS4Controller
 from src.types import CollisionEffect, EntityType
+from src.npc import NpcSpawner
+
 
 app = Ursina()
 camera.orthographic = False
@@ -14,6 +16,7 @@ window.fullscreen = True
 window.exit_button.visible = False
 
 game = Game()
+spawner = NpcSpawner(game)
 controller = PS4Controller()
 keyboard = KeyboardController()
 
@@ -43,7 +46,7 @@ player1 = Player(
 player2 = Player(
     game,
     controller=controller,
-    player_id=0,                  
+    player_id=1,                  
     model='quad',
     texture='assets/images/player_tank.png',
     position=(2, -5),
@@ -85,124 +88,6 @@ player3 = Player(
     remove_counter=0,
     remove_limit=3,
 
-)
-
-enemy_tank1 = EnemyTank(
-    game=game,
-    model='quad',
-    texture='assets/images/tank0.png',
-    position=(-6, 5),
-    z=0,
-    scale=(0.8, 1),
-    color=color.white,
-    collider='box',
-    rigidbody=True,
-    takes_hit=True,
-    durability=30,
-    is_tank=True,
-    bullets_on_screen=0,
-    can_shoot=True,
-    max_speed=1,
-    direction=0,
-    frame_counter = 0,
-    is_exploded=False,
-    remove_counter=0,
-    remove_limit=3,
-
-)
-
-enemy_tank2 = EnemyTank(
-    game=game,
-    model='quad',
-    texture='assets/images/tank0.png',
-    position=(-5, 5),
-    z=0,
-    scale=(0.8, 1),
-    color=color.green,
-    collider='box',
-    rigidbody=True,
-    takes_hit=True,
-    durability=10,
-    is_tank=True,
-    bullets_on_screen=0,
-    can_shoot=True,
-    max_speed=1,
-    direction=0,
-    frame_counter = 0,
-    is_exploded=False,
-    remove_counter=0,
-    remove_limit=3,
-
-)
-
-enemy_tank3 = EnemyTank(
-    game=game,
-    model='quad',
-    texture='assets/images/tank0.png',
-    position=(6, 5),
-    z=0,
-    scale=(0.8, 1),
-    color=color.yellow,
-    collider='box',
-    rigidbody=True,
-    takes_hit=True,
-    durability=50,
-    is_tank=True,
-    bullets_on_screen=0,
-    can_shoot=True,
-    max_speed=1,
-    direction=0,
-    frame_counter = 0,
-    is_exploded=False,
-    remove_counter=0,
-    remove_limit=3,
-
-)
-
-enemy_tank4 = EnemyTank(
-    game=game,
-    model='quad',
-    texture='assets/images/tank0.png',
-    position=(5, 5),
-    z=0,
-    scale=(0.8, 1),
-    color=color.azure,
-    collider='box',
-    rigidbody=True,
-    takes_hit=True,
-    durability=100,
-    is_tank=True,
-    bullets_on_screen=0,
-    can_shoot=True,
-    max_speed=.5,
-    direction=0,
-    frame_counter = 0,
-    is_exploded=False,
-    remove_counter=0,
-    remove_limit=3
-)
-
-enemy_tank5 = EnemyTank(
-    game=game,
-    model='quad',
-    texture='assets/images/tank0.png',
-    position=(4, 5),
-    z=0,
-    scale=(0.8, 1),
-    color=color.rgba(0.5, 0.5, 0, 0.9),
-    collider='box',
-    rigidbody=True,
-    takes_hit=True,
-    durability=100,
-    is_tank=True,
-    bullets_on_screen=0,
-    can_shoot=True,
-    max_speed=.5,
-    direction=0,
-    frame_counter = 0,
-    is_exploded=False,
-    remove_counter=0,
-    remove_limit=3
 )
 
 tile_size = 1
@@ -346,6 +231,8 @@ def refresh_stats():
 timer_counter = 0
 update_interval = 0.1
 is_game_over = False
+
+spawner.spawn_initial_npcs()
 
 def update():
 

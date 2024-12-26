@@ -1,3 +1,4 @@
+from ursina import *
 
 def __get_map(index: int):
     maps = [
@@ -34,6 +35,39 @@ def __get_map(index: int):
     ]
 
     return maps[index]
+
+def __load_npcs(level: int):
+    npcs = [
+            [
+                {
+                    'texture'       : 'assets/images/tank0.png',
+                    'color'         : color.white,
+                    'scale'         : (0.8, 1),
+                    'max_speed'     : 1,
+                    'max_bullets'   : 1,
+                    'chosen_bullet' : 1,
+                    'durability'    : 30,
+                    'count'         : 10,
+                    'at_once'       : 5
+                },
+                {
+                    'texture'       : 'assets/images/tank0.png',
+                    'color'         : color.azure,
+                    'scale'         : (0.8, 1),
+                    'max_speed'     : 1.5,
+                    'max_bullets'   : 2,
+                    'chosen_bullet' : 0,
+                    'durability'    : 30,
+                    'count'         : 10,
+                    'at_once'       : 5
+                }
+            ]        
+    ]
+
+    return npcs[level]
+
+def load_npcs(level: int):
+    return __load_npcs(level)
 
 def load_map(level: int):
     return __get_map(level)
