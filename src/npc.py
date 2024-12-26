@@ -9,18 +9,18 @@ class EnemyTank(Tank):
     def __init__(self, game : Game, **kwargs):
         super().__init__(game, entity_type=EntityType.ENEMY_TANK, **kwargs)
         self.game = game
-        self.frame_counter = 0
-        self.next_turn_frames = random.randint(100, 1000)
+        self.turn_time_counter = 0
+        self.next_turn_time = random.uniform(0.0, 0.5)
         self.least_interval_between_bullets = 0.2
         self.bullet_interval_counter = 0
 
     def update(self):
         # Enemy tank movement logic
-        if self.frame_counter > self.next_turn_frames:
+        if self.turn_time_counter > self.next_turn_time:
             self.direction = random.randint(0, 3)  # Pick a random direction
-            self.frame_counter = 0
-            self.next_turn_frames = random.randint(100, 1000)
-        self.frame_counter += 1
+            self.turn_time_counter = 0
+            self.next_turn_time = random.uniform(1, 5)
+        self.turn_time_counter += time.dt
 
         # Attempt to move the tank in its current direction
         movement_distance = 0.5

@@ -6,11 +6,35 @@ from src.timer import Timer
 from src.bullet import Bullet
 from src.drops import randomize_drop
 
+class WetEffect(Entity):
+    def __init__(self, parent_entity=None, **kwargs):
+        super().__init__(
+            parent=parent_entity,
+            texture='assets/images/wet_effect.png',
+            model='quad',
+            color=color.Color(1, 1, 1, 0.5),
+            z=-0.01,
+            visible=False,
+            **kwargs
+        )
+
+class FireEffect(Entity):
+    def __init__(self, parent_entity=None, **kwargs):
+        super().__init__(
+            parent=parent_entity,
+            texture='assets/images/fire_effect.png',
+            model='quad',
+            color=color.Color(1, 1, 1, 0.5),
+            z=-0.01,
+            visible=False,
+            **kwargs
+        )
 
 class Tank(Entity):
     def __init__(self, game : Game, **kwargs):
         super().__init__(**kwargs)
         self.game = game
+        self.healthy_texture = self.texture
         self.health_bar = HealthBar(max_health=self.durability, current_health=self.durability, parent_entity=self)
         self.kills = 0
         self.tanks_damage_dealt = 0
@@ -22,7 +46,12 @@ class Tank(Entity):
         self.burn_damage_timer = Timer(timeout=1, counts=10, tick_callback=self.apply_burn_damage, end_callback=self.stop_burn_damage)
         self.wet_damage_timer = Timer(timeout=10, counts=1, tick_callback=self.apply_wet_damage, end_callback=self.stop_wet_damage)
         self.slow_down_timer = Timer(timeout=0.2, counts=1, tick_callback=self.apply_slow_down, end_callback=self.stop_slow_down)
+
+        self.water_effect = WetEffect(self)
+        self.fire_effect = FireEffect(self)
         self.bullet = Bullet()
+        
+        
 
     @property
     def total_damage_dealt(self):
@@ -46,24 +75,24 @@ class Tank(Entity):
     
     @property
     def bullet_speed(self):
-        return self.bullet.bullet.speed
+        return self.bullet.bullet.speed        
     
     def apply_burn_damage(self, effect):
-        self.texture = "assets/images/tank0_burning.png"
+        self.fire_effect.visible = True
         self.durability -= effect
         self.check_destroy()
 
     def stop_burn_damage(self):
         self.burn_damage_timer.stop()
-        self.texture = "assets/images/tank0.png"
+        self.fire_effect.visible = False
 
     def apply_wet_damage(self, effect):
         self.stop_burn_damage()
-        self.texture = "assets/images/tank0_wet.png"
+        self.water_effect.visible = True
         self.apply_slow_down(effect)
 
     def stop_wet_damage(self):
-        self.texture = "assets/images/tank0.png"
+        self.water_effect.visible = False
         self.affected_speed = 0
         self.wet_damage_timer.stop()
 
@@ -151,7 +180,7 @@ class Tank(Entity):
                     print("Respawning")
                     tmp_position = self.position
                     self.game.respawn(self)
-                    self.texture = "assets/images/tank0.png"
+                    self.texture = self.healthy_texture
                     self.is_exploded = False
                     self.remove_counter = 0
                     self.durability = self.health_bar.max_health # Filter enemy tank...
