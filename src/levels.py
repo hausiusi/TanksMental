@@ -71,6 +71,28 @@ def __load_npcs(level: int):
                     'durability'    : 70,
                     'count'         : 5,
                     'at_once'       : 5
+                },
+                {
+                    'texture'       : 'assets/images/tank0.png',
+                    'color'         : color.yellow,
+                    'scale'         : (0.8, 1),
+                    'max_speed'     : 2,
+                    'max_bullets'   : 3,
+                    'chosen_bullet' : 1,
+                    'durability'    : 100,
+                    'count'         : 5,
+                    'at_once'       : 5
+                },
+                {
+                    'texture'       : 'assets/images/tank0.png',
+                    'color'         : color.black,
+                    'scale'         : (1.5, 1.5),
+                    'max_speed'     : 2,
+                    'max_bullets'   : 3,
+                    'chosen_bullet' : 1,
+                    'durability'    : 200,
+                    'count'         : 2,
+                    'at_once'       : 1
                 }
             ]        
     ]
