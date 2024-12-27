@@ -48,18 +48,21 @@ class NpcSpawner:
         self.npc_pools = load_npcs(self.game.current_level)
         self.spawned_count = 0
         self.npc_pool_index = 0
+        self.total_npcs = 0
+        for pool in self.npc_pools:
+            self.total_npcs += pool['count']
 
-    def __load_npc_pool(self):
-        if len(self.npc_pools) <= self.npc_pool_index:
+    def __load_npc_pool(self, index):
+        if len(self.npc_pools) <= index:
             return False
         
-        self.npc_pool = self.npc_pools[self.npc_pool_index]
+        self.npc_pool = self.npc_pools[index]
         self.max_npcs_at_once = self.npc_pool['at_once']
         self.npcs_available = self.npc_pool['count']
         return True
 
     def spawn_initial_npcs(self):
-        if not self.__load_npc_pool():
+        if not self.__load_npc_pool(self.npc_pool_index):
             return
 
         # TODO: Put this in while and use only one for loop
@@ -72,7 +75,7 @@ class NpcSpawner:
 
         if self.npcs_available == 0: # NPC pool is empty
             self.npc_pool_index += 1
-            self.__load_npc_pool(self)
+            self.__load_npc_pool(self.npc_pool_index)
         if self.spawned_count < self.max_npcs_at_once:
             for i in range(self.max_npcs_at_once - self.spawned_count):
                 enemy_tank = self.create_npc()
@@ -82,16 +85,17 @@ class NpcSpawner:
 
     def spawn_more(self):
         if self.npcs_available == 0:
-            self.npc_pool_index += 1
-            if not self.__load_npc_pool():
+            index = self.npc_pool_index + 1
+            if self.__load_npc_pool(index):
+                self.npc_pool_index = index
+            else:
                 return
         
         enemy_tank = self.create_npc()
         self.game.spawn(enemy_tank)
         self.spawned_count += 1
         self.npcs_available -= 1
-        print(f"Spawned {enemy_tank.name}. In total {self.spawned_count} NPCs spawned. There are {self.npcs_available} left in the pool")
-        
+        print(f"Spawned {enemy_tank.name}. In total {self.spawned_count} NPCs spawned. There are {self.npcs_available} left in the pool")        
     
     def create_npc(self) -> Entity:
         enemy_tank = EnemyTank(

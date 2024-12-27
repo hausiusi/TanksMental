@@ -29,7 +29,40 @@ class Game:
         self.max_enemy_tanks_count = 30
         self.enemy_tanks_count = 5
         self.current_level = 0
+
+        stat_items = {
+            "current_level" : "Level",
+            "wave"          : "Wave",
+            "total_waves"   : "Total waves",
+            "tanks_coming"  : "Tanks coming"
+        }
         
+        self.stat_text_pairs = {}
+        pos_y = 0.45
+        pos_x = self.left_edge
+
+        origin_x = -0.5
+        for key, value in stat_items.items():
+            name_text = Text(
+            name=key,
+            text=value,
+            scale=0.6,
+            position=(pos_x, pos_y),
+            z=-0.1,
+            color=color.white,
+            origin=(origin_x, pos_y)
+            )
+
+            value_text = Text(
+            text="0",
+            scale=0.6,
+            position=(pos_x + 0.1, pos_y),
+            z=-0.1,
+            color=color.white,
+            origin=(origin_x, pos_y)
+            )
+            self.stat_text_pairs[key] = (name_text, value_text)
+            pos_y -= 0.02
 
     def update_no_barrier_entities(self):
         self.no_barrier_entities = [e for e in scene.entities if hasattr(e, "collision_effect") and e.collision_effect != CollisionEffect.BARRIER]
@@ -56,6 +89,12 @@ class Game:
         )
         self.over = True
         return background, game_over_text
+    
+    def refresh_level_stats(self, wave, total_waves, tanks_coming):
+        self.stat_text_pairs['current_level'][1].text = f'{self.current_level}'
+        self.stat_text_pairs['wave'][1].text = f'{wave}'
+        self.stat_text_pairs['total_waves'][1].text = f'{total_waves}'
+        self.stat_text_pairs['tanks_coming'][1].text = f'{tanks_coming}'
 
     def is_on_screen(self, entity: Entity):
         """Check if an entity is within fixed screen bounds."""

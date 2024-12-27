@@ -227,6 +227,7 @@ def refresh_stats():
     player1.refresh_stats()
     player2.refresh_stats()
     player3.refresh_stats()
+    game.refresh_level_stats(spawner.npc_pool_index, len(spawner.npc_pools), spawner.total_npcs - spawner.spawned_count)
 
 timer_counter = 0
 update_interval = 0.1
