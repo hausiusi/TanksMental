@@ -28,6 +28,10 @@ class Tank(Entity):
         self.water_effect = WetEffect(self)
         self.fire_effect = FireEffect(self)
 
+        self.boss_audio = Audio('assets/audio/boss.ogg', loop=True, volume=0.5, autoplay=False)
+        if self.entity_type == EntityType.BOSS:
+            self.boss_audio.play()
+
     @property
     def total_damage_dealt(self):
         return self.tanks_damage_dealt + self.other_damage_dealt
@@ -125,7 +129,9 @@ class Tank(Entity):
                     if collided_entity.drop_effect == DropEffect.MISSILE_SPEED_INCREASE:
                         self.ammunition.bullet.speed += 1
                     destroy(collided_entity)
-                elif collided_entity.entity_type == EntityType.ENEMY_TANK or collided_entity.entity_type == EntityType.PLAYER_TANK:
+                elif (collided_entity.entity_type == EntityType.ENEMY_TANK 
+                      or collided_entity.entity_type == EntityType.PLAYER_TANK or 
+                      collided_entity.entity_type == EntityType.BOSS):
                     if collided_entity.collision_effect == CollisionEffect.BARRIER:
                         movement_is_allowed = False
                         break
@@ -157,6 +163,8 @@ class Tank(Entity):
                 if self.entity_type is not EntityType.PLAYER_TANK:
                     print(f"{self.name} has been destroyed")
                     destroy(self)
+                    if self.entity_type == EntityType.BOSS:
+                        self.boss_audio.stop()
                 else:
                     self.respawn()
                 randomize_drop(tmp_position)

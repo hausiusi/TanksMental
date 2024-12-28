@@ -14,6 +14,7 @@ class EntityType(Enum):
     TERRAIN = 3
     SUPPLY_DROP = 4
     BASE = 5
+    BOSS = 6
 
 class DropEffect(Enum):
     MISSILE_DAMAGE_INCREASE = 0

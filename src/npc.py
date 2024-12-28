@@ -8,7 +8,7 @@ from src.levels import load_npcs
 
 class EnemyTank(Tank):
     def __init__(self, game : Game, **kwargs):
-        super().__init__(game, entity_type=EntityType.ENEMY_TANK, **kwargs)
+        super().__init__(game, **kwargs)
         self.game = game
         self.turn_time_counter = 0
         self.next_turn_time = random.uniform(0.0, 0.5)
@@ -100,6 +100,7 @@ class NpcSpawner:
     def create_npc(self) -> Entity:
         enemy_tank = EnemyTank(
                 name=f'EnemyTank{self.spawned_count}',
+                entity_type=self.npc_pool['entity_type'],
                 game=self.game,
                 on_destroy=self.spawn_more,
                 model='quad',

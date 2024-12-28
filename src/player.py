@@ -16,6 +16,7 @@ class Player(Tank):
         self.controller.initialize_controller()
         self.bullet_switch_speed = 0.3
         self.last_bullet_switch = 0
+        self.move_audio = Audio("assets/audio/tank_move.ogg", volume=1, loop=True)
 
         stat_items = {"player_id" : "Player", 
                       "health" : "Health", 
@@ -88,16 +89,22 @@ class Player(Tank):
         buttons_state = self.controller.get_buttons_state(self.player_id)
         if buttons_state['left']:
             direction = 'a'
-        if buttons_state['up']:
+        elif buttons_state['up']:
             direction = 'w'
-        if buttons_state['down']:
+        elif buttons_state['down']:
             direction = 's'
-        if buttons_state['right']:
+        elif buttons_state['right']:
             direction = 'd'
-        self.move(direction, movement_distance)            
+        else:
+            self.move_audio.stop()
+        
+        if direction != "":
+            if not self.move_audio.playing:
+                self.move_audio.play()
+            self.move(direction, movement_distance)        
 
         if buttons_state['shoot'] and self.can_shoot == True and self.bullets_on_screen < self.bullets_max:
-            self.ammunition.shoot_bullet(self)
+            self.ammunition.shoot_bullet(self, play_sound=True)
             self.can_shoot = False
         elif not buttons_state['shoot']:
             self.can_shoot = True

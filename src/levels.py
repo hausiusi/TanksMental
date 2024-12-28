@@ -1,4 +1,5 @@
 from ursina import *
+from src.types import EntityType
 
 def __get_map(index: int):
     maps = [
@@ -41,28 +42,31 @@ def __load_npcs(level: int):
             [
                 {
                     'texture'       : 'assets/images/tank0.png',
+                    'entity_type'   : EntityType.ENEMY_TANK,
                     'color'         : color.white,
                     'scale'         : (0.8, 1),
                     'max_speed'     : 1,
                     'max_bullets'   : 1,
                     'chosen_bullet' : 0,
                     'durability'    : 20,
-                    'count'         : 10,
+                    'count'         : 5,
                     'at_once'       : 5
                 },
                 {
                     'texture'       : 'assets/images/tank0.png',
+                    'entity_type'   : EntityType.ENEMY_TANK,
                     'color'         : color.azure,
                     'scale'         : (0.8, 1),
                     'max_speed'     : 1.5,
                     'max_bullets'   : 2,
                     'chosen_bullet' : 0,
                     'durability'    : 40,
-                    'count'         : 10,
+                    'count'         : 5,
                     'at_once'       : 5
                 },
                 {
                     'texture'       : 'assets/images/tank0.png',
+                    'entity_type'   : EntityType.ENEMY_TANK,
                     'color'         : color.green,
                     'scale'         : (0.8, 1),
                     'max_speed'     : 1.5,
@@ -74,6 +78,7 @@ def __load_npcs(level: int):
                 },
                 {
                     'texture'       : 'assets/images/tank0.png',
+                    'entity_type'   : EntityType.ENEMY_TANK,
                     'color'         : color.yellow,
                     'scale'         : (0.8, 1),
                     'max_speed'     : 2,
@@ -85,13 +90,14 @@ def __load_npcs(level: int):
                 },
                 {
                     'texture'       : 'assets/images/tank0.png',
+                    'entity_type'   : EntityType.BOSS,
                     'color'         : color.black,
                     'scale'         : (1.5, 1.5),
                     'max_speed'     : 2,
                     'max_bullets'   : 3,
                     'chosen_bullet' : 1,
                     'durability'    : 200,
-                    'count'         : 2,
+                    'count'         : 1,
                     'at_once'       : 1
                 }
             ]        
