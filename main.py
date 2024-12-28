@@ -1,12 +1,10 @@
 from ursina import *
 import math
-from src.levels import load_map
 from src.player import Player
 from src.npc import EnemyTank
 from src.game import Game
 from src.controller import KeyboardController, PS4Controller
 from src.types import CollisionEffect, EntityType
-from src.npc import NpcSpawner
 
 
 app = Ursina()
@@ -16,7 +14,6 @@ window.fullscreen = True
 window.exit_button.visible = False
 
 game = Game()
-spawner = NpcSpawner(game)
 controller = PS4Controller()
 keyboard = KeyboardController()
 
@@ -90,95 +87,6 @@ player3 = Player(
 
 )
 
-tile_size = 1
-
-def create_tile_map():
-    level_map = load_map(0)
-    for y, row in enumerate(level_map):
-        for x, val in enumerate(row):
-            # Position the tile such that the center is (0, 0)
-            # Tile positions will be adjusted based on the grid center
-            if val != 0:
-                pos_x = (x - len(row) // 2) * tile_size
-                pos_y = -(y - len(level_map) // 2) * tile_size
-
-                durability = 100
-                takes_hit = False
-                resistance = 0
-                damaging = 0
-                collision_effect = CollisionEffect.NO_EFFECT
-                effect_strength = 0
-                name = ""
-                entity_type=EntityType.TERRAIN
-
-                # Create a tile (Entity with Quad mesh)
-                if val == 1:
-                    tile_texture = 'assets/images/grass.png'
-                    collision_effect = CollisionEffect.SLOW_DOWN
-                    effect_strength = 50
-                    name = f'grass_{x}_{y}'
-                elif val == 2:
-                    tile_texture = 'assets/images/wall0.png'
-                    collision_effect = CollisionEffect.BARRIER
-                    durability = 5
-                    takes_hit = True
-                    name = f'wall_{x}_{y}'
-                elif val == 3:
-                    tile_texture = 'assets/images/water0.png'
-                    collision_effect = CollisionEffect.DAMAGE_WET
-                    effect_strength = 90
-                    name = f'water_{x}_{y}'
-                elif val == 4:
-                    tile_texture = 'assets/images/fire0.png'
-                    collision_effect = CollisionEffect.DAMAGE_BURN
-                    effect_strength = 1
-                    name = f'fire_{x}_{y}'
-                    damaging = 1
-                elif val == 5:
-                    tile_texture = 'assets/images/stones0.png'
-                    collision_effect = CollisionEffect.SLOW_DOWN
-                    effect_strength = 50
-                    name = f'stones_{x}_{y}'
-                elif val == 6:
-                    tile_texture = 'assets/images/white_wall.png'
-                    collision_effect = CollisionEffect.BARRIER
-                    takes_hit = True
-                    durability = 10
-                    name = f'white_wall_{x}_{y}'
-                elif val == 7:
-                    tile_texture = 'assets/images/sand.png'
-                    collision_effect = CollisionEffect.SLOW_DOWN
-                    effect_strength = 30
-                    takes_hit = True
-                    durability = 1
-                    name = f'sand_{x}_{y}'
-                elif val == 8:
-                    tile_texture = 'assets/images/gas_station0.png'
-                    collision_effect = CollisionEffect.NO_EFFECT
-                    entity_type = EntityType.BASE
-                    takes_hit = True
-                    durability = 1
-                    name = f'gas_station_{x}_{y}'
-
-                tile = Entity(
-                    name=name,
-                    model='quad',
-                    entity_type=entity_type,
-                    z = 0,                    
-                    texture=tile_texture,  # Apply the texture to each tile
-                    scale=(tile_size - 0.001, tile_size - 0.001),  # Set the tile size
-                    position=(pos_x, pos_y),  # Position the tile in the grid
-                    collider='box',  # Add a collider if needed (for interaction)
-                    durability=durability,
-                    takes_hit=takes_hit,
-                    damaging=damaging,
-                    collision_effect=collision_effect,
-                    effect_strength=effect_strength,
-                    render_queue=1,
-                    color = color.Color(1,1,1,1)
-                )    
-
-
 # Mode toggle
 is_edit_mode = False  
 #EditorCamera(enabled=True) 
@@ -227,13 +135,14 @@ def refresh_stats():
     player1.refresh_stats()
     player2.refresh_stats()
     player3.refresh_stats()
-    game.refresh_level_stats(spawner.npc_pool_index, len(spawner.npc_pools), spawner.total_npcs - spawner.spawned_count)
+    game.refresh_level_stats(game.npc_spawner.npc_pool_index + 1, 
+                             len(game.npc_spawner.npc_pools), 
+                             game.npc_spawner.total_npcs - game.npc_spawner.spawned_count)
 
 timer_counter = 0
 update_interval = 0.1
 is_game_over = False
 
-spawner.spawn_initial_npcs()
 
 def update():
 
@@ -293,8 +202,15 @@ def input(key):
         player1.enabled = not is_edit_mode  # Disable player in edit mode
         print("Edit mode:", is_edit_mode)
 
-
-create_tile_map()
+game.create_tile_map()
+game.npc_spawner.load_level_npcs(game.level_index)
+game.npc_spawner.spawn_initial_npcs()
 game.update_no_barrier_entities()
 game.update_barrier_entities()
+game.controllers.append(player1.controller)
+game.controllers.append(player2.controller)
+game.controllers.append(player3.controller)
+game.players.append(player1)
+game.players.append(player2)
+game.players.append(player3)
 app.run()

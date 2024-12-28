@@ -1,7 +1,7 @@
 from src.types import CollisionEffect, EntityType, DropEffect
 from src.controller import PS4Controller, KeyboardController
 from src.game import Game
-from src.levels import load_map, load_npcs
+from src.levels import load_map, load_npcs, get_levels_count
 from src.player import Player
 from src.settings import Settings
 from src.healthbar import HealthBar

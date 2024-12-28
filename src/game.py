@@ -1,16 +1,22 @@
 from ursina import *
 from src.settings import Settings
+from src.levels import load_map, get_levels_count
 from src.types import CollisionEffect, EntityType
+from src.npc import NpcSpawner
 
 class Game:
     def __init__(self):
         self.settings = Settings()
+        self.controllers = []
+        self.players = []
 
         aspect_ratio = window.aspect_ratio  # Aspect ratio of the window
         self.left_edge = -0.5 * aspect_ratio
         self.right_edge = 0.5 * aspect_ratio
         self.no_barrier_entities = []
         self.over = False
+        self.level_complete = False
+        self.tile_size = 1
 
         self.directions = {
             # Multiple variants for the same directions
@@ -26,12 +32,12 @@ class Game:
             'a': Vec3(-1, 0, 0),  # Left
         }
 
-        self.max_enemy_tanks_count = 30
-        self.enemy_tanks_count = 5
-        self.current_level = 0
+        self.level_index = 0
+        self.npc_spawner = NpcSpawner(self)
+        self.levels_count = get_levels_count()
 
         stat_items = {
-            "current_level" : "Level",
+            "level"         : "Level",
             "wave"          : "Wave",
             "total_waves"   : "Total waves",
             "tanks_coming"  : "Tanks coming"
@@ -87,11 +93,147 @@ class Game:
         color=color.red,            
         origin=(0, 0)
         )
-        self.over = True
-        return background, game_over_text
+        self.over = True        
     
+    def show_level_complete(self):
+        self.background = Entity(
+        model='quad',
+        texture='assets/images/black.png',
+        scale=(5, 1),
+        z=-0.04,       
+        position=(0, 0)             
+        )
+        self.level_completed_text = Text(
+        text=f'Level {self.level} completed!',            
+        scale=2,
+        z=-0.03,                    
+        position=(0, 0),            
+        color=color.green,            
+        origin=(0, 0)
+        )
+
+        self.press_key_text = Text(
+        text='Press shoot to continue',            
+        scale=0.5,
+        z=-0.03,                    
+        position=(0, 0.5),            
+        color=color.white,            
+        origin=(0, 0)
+        )
+        
+        self.level_complete = True
+
+    def show_you_win(self):
+        background = Entity(
+        model='quad',
+        texture='assets/images/black.png',
+        scale=(5, 1),          
+        #color=color.Color(1, 1, 1, 0.5),
+        z=-0.04,       
+        position=(0, 0)             
+        )
+        game_over_text = Text(
+        text='You Win!',            
+        scale=2,
+        z=-0.03,                    
+        position=(0, 0),            
+        color=color.green,            
+        origin=(0, 0)
+        )
+        self.over = True
+    
+    def create_tile_map(self):
+        level_map = load_map(self.level_index)
+        for y, row in enumerate(level_map):
+            for x, val in enumerate(row):
+                # Position the tile such that the center is (0, 0)
+                # Tile positions will be adjusted based on the grid center
+                if val != 0:
+                    pos_x = (x - len(row) // 2) * self.tile_size
+                    pos_y = -(y - len(level_map) // 2) * self.tile_size
+
+                    durability = 100
+                    takes_hit = False
+                    resistance = 0
+                    damaging = 0
+                    collision_effect = CollisionEffect.NO_EFFECT
+                    effect_strength = 0
+                    name = ""
+                    entity_type=EntityType.TERRAIN
+
+                    # Create a tile (Entity with Quad mesh)
+                    if val == 1:
+                        tile_texture = 'assets/images/grass.png'
+                        collision_effect = CollisionEffect.SLOW_DOWN
+                        effect_strength = 50
+                        name = f'grass_{x}_{y}'
+                    elif val == 2:
+                        tile_texture = 'assets/images/wall0.png'
+                        collision_effect = CollisionEffect.BARRIER
+                        durability = 5
+                        takes_hit = True
+                        name = f'wall_{x}_{y}'
+                    elif val == 3:
+                        tile_texture = 'assets/images/water0.png'
+                        collision_effect = CollisionEffect.DAMAGE_WET
+                        effect_strength = 90
+                        name = f'water_{x}_{y}'
+                    elif val == 4:
+                        tile_texture = 'assets/images/fire0.png'
+                        collision_effect = CollisionEffect.DAMAGE_BURN
+                        effect_strength = 1
+                        name = f'fire_{x}_{y}'
+                        damaging = 1
+                    elif val == 5:
+                        tile_texture = 'assets/images/stones0.png'
+                        collision_effect = CollisionEffect.SLOW_DOWN
+                        effect_strength = 50
+                        name = f'stones_{x}_{y}'
+                    elif val == 6:
+                        tile_texture = 'assets/images/white_wall.png'
+                        collision_effect = CollisionEffect.BARRIER
+                        takes_hit = True
+                        durability = 10
+                        name = f'white_wall_{x}_{y}'
+                    elif val == 7:
+                        tile_texture = 'assets/images/sand.png'
+                        collision_effect = CollisionEffect.SLOW_DOWN
+                        effect_strength = 30
+                        takes_hit = True
+                        durability = 1
+                        name = f'sand_{x}_{y}'
+                    elif val == 8:
+                        tile_texture = 'assets/images/gas_station0.png'
+                        collision_effect = CollisionEffect.NO_EFFECT
+                        entity_type = EntityType.BASE
+                        takes_hit = True
+                        durability = 1
+                        name = f'gas_station_{x}_{y}'
+
+                    tile = Entity(
+                        name=name,
+                        model='quad',
+                        entity_type=entity_type,
+                        z = 0,                    
+                        texture=tile_texture,  # Apply the texture to each tile
+                        scale=(self.tile_size - 0.001, self.tile_size - 0.001),  # Set the tile size
+                        position=(pos_x, pos_y),  # Position the tile in the grid
+                        collider='box',  # Add a collider if needed (for interaction)
+                        durability=durability,
+                        takes_hit=takes_hit,
+                        damaging=damaging,
+                        collision_effect=collision_effect,
+                        effect_strength=effect_strength,
+                        render_queue=1,
+                        color = color.Color(1,1,1,1)
+                    )
+
+    @property
+    def level(self):
+        return self.level_index + 1
+
     def refresh_level_stats(self, wave, total_waves, tanks_coming):
-        self.stat_text_pairs['current_level'][1].text = f'{self.current_level}'
+        self.stat_text_pairs['level'][1].text = f'{self.level}'
         self.stat_text_pairs['wave'][1].text = f'{wave}'
         self.stat_text_pairs['total_waves'][1].text = f'{total_waves}'
         self.stat_text_pairs['tanks_coming'][1].text = f'{tanks_coming}'
@@ -181,4 +323,3 @@ class Game:
                 colliding_entities.append(e)
 
         return colliding_entities
-

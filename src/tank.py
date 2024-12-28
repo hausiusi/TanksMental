@@ -1,5 +1,4 @@
 from ursina import *
-from src.game import Game
 from src.healthbar import HealthBar
 from src.types import CollisionEffect, EntityType, DropEffect
 from src.timer import Timer
@@ -8,7 +7,7 @@ from src.drops import randomize_drop
 from src.effects import WetEffect, FireEffect
 
 class Tank(Entity):
-    def __init__(self, game : Game, **kwargs):
+    def __init__(self, game, **kwargs):
         super().__init__(**kwargs)
         self.game = game
         self.healthy_texture = self.texture
@@ -162,9 +161,9 @@ class Tank(Entity):
                 tmp_position = self.position
                 if self.entity_type is not EntityType.PLAYER_TANK:
                     print(f"{self.name} has been destroyed")
-                    destroy(self)
                     if self.entity_type == EntityType.BOSS:
                         self.boss_audio.stop()
+                    destroy(self)                      
                 else:
                     self.respawn()
                 randomize_drop(tmp_position)

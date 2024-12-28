@@ -16,7 +16,7 @@ class Player(Tank):
         self.controller.initialize_controller()
         self.bullet_switch_speed = 0.3
         self.last_bullet_switch = 0
-        self.move_audio = Audio("assets/audio/tank_move.ogg", volume=1, loop=True)
+        self.move_audio = Audio("assets/audio/tank_move.ogg", volume=1, loop=True, autoplay=False)
 
         stat_items = {"player_id" : "Player", 
                       "health" : "Health", 
@@ -77,6 +77,32 @@ class Player(Tank):
 
     def update(self):
         if self.game.over:
+            return
+        
+        if self.game.level_complete:
+            buttons_state = self.controller.get_buttons_state(self.player_id)
+            if buttons_state['shoot']:
+                destroy(self.game.background)
+                destroy(self.game.level_completed_text)
+                destroy(self.game.press_key_text)
+                for entity in scene.entities:
+                    if hasattr(entity, "entity_type"):
+                        if (entity.entity_type != EntityType.PLAYER_TANK 
+                        and entity.entity_type != EntityType.BOSS
+                        and entity.entity_type != EntityType.BULLET):
+                            destroy(entity)
+                self.game.level_index += 1
+                if self.game.level_index >= self.game.levels_count:
+                    self.game.show_you_win()
+                    return
+                self.game.create_tile_map()
+                self.game.npc_spawner.load_level_npcs(self.game.level_index)
+                self.game.npc_spawner.spawn_initial_npcs()
+                for player in self.game.players:
+                    player.respawn()
+
+                self.game.level_complete = False
+                
             return
         
         super().update()

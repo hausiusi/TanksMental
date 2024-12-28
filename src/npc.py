@@ -1,13 +1,11 @@
 from ursina import *
-from src.game import Game
-from src.healthbar import HealthBar
 from src.tank import Tank
+from src.levels import load_npcs
 from src.types import EntityType
 import random
-from src.levels import load_npcs
 
 class EnemyTank(Tank):
-    def __init__(self, game : Game, **kwargs):
+    def __init__(self, game, **kwargs):
         super().__init__(game, **kwargs)
         self.game = game
         self.turn_time_counter = 0
@@ -40,12 +38,14 @@ class EnemyTank(Tank):
             self.health_bar.update_health(self.durability)
 
         super().update()
-        
 
 class NpcSpawner:
-    def __init__(self, game:Game):
+    def __init__(self, game):
         self.game = game
-        self.npc_pools = load_npcs(self.game.current_level)
+        self.load_level_npcs(self.game.level_index)
+
+    def load_level_npcs(self, level):
+        self.npc_pools = load_npcs(level)
         self.spawned_count = 0
         self.npc_pool_index = 0
         self.total_npcs = 0
@@ -65,23 +65,18 @@ class NpcSpawner:
         if not self.__load_npc_pool(self.npc_pool_index):
             return
 
-        # TODO: Put this in while and use only one for loop
-        spawn_count = min(self.npcs_available, self.max_npcs_at_once)
-        for i in range(spawn_count):
-            enemy_tank = self.create_npc()
-            self.game.spawn(enemy_tank)
-            self.spawned_count += 1
-            self.npcs_available -= 1
-
-        if self.npcs_available == 0: # NPC pool is empty
-            self.npc_pool_index += 1
-            self.__load_npc_pool(self.npc_pool_index)
-        if self.spawned_count < self.max_npcs_at_once:
-            for i in range(self.max_npcs_at_once - self.spawned_count):
+        while self.spawned_count < self.max_npcs_at_once and self.npcs_available > 0:
+            spawn_count = min(self.npcs_available, self.max_npcs_at_once - self.spawned_count)
+            for i in range(spawn_count):
                 enemy_tank = self.create_npc()
                 self.game.spawn(enemy_tank)
                 self.spawned_count += 1
                 self.npcs_available -= 1
+
+                if self.npcs_available == 0:  # NPC pool is empty
+                    self.npc_pool_index += 1
+                    if not self.__load_npc_pool(self.npc_pool_index):
+                        break
 
     def spawn_more(self):
         if self.npcs_available == 0:
@@ -95,14 +90,16 @@ class NpcSpawner:
         self.game.spawn(enemy_tank)
         self.spawned_count += 1
         self.npcs_available -= 1
-        print(f"Spawned {enemy_tank.name}. In total {self.spawned_count} NPCs spawned. There are {self.npcs_available} left in the pool")        
+        print(f"Spawned {enemy_tank.name}. In total {self.spawned_count} NPCs spawned. There are {self.npcs_available} left in the pool")
+
+    def level_complete(self):
+        self.game.show_level_complete()
     
     def create_npc(self) -> Entity:
         enemy_tank = EnemyTank(
                 name=f'EnemyTank{self.spawned_count}',
                 entity_type=self.npc_pool['entity_type'],
                 game=self.game,
-                on_destroy=self.spawn_more,
                 model='quad',
                 texture=self.npc_pool['texture'],
                 visible=False,
@@ -124,5 +121,6 @@ class NpcSpawner:
             )
         enemy_tank.ammunition.choose_bullet(self.npc_pool['chosen_bullet'])
         enemy_tank.ammunition.bullet.max_bullets = self.npc_pool['max_bullets']
+        enemy_tank.on_destroy=self.level_complete if enemy_tank.entity_type==EntityType.BOSS else self.spawn_more
 
         return enemy_tank
