@@ -99,7 +99,7 @@ class Game:
         self.background = Entity(
         model='quad',
         texture='assets/images/black.png',
-        scale=(5, 1),
+        scale=(5.5, 1.5),
         z=-0.04,       
         position=(0, 0)             
         )
@@ -116,7 +116,7 @@ class Game:
         text='Press shoot to continue',            
         scale=0.5,
         z=-0.03,                    
-        position=(0, 0.5),            
+        position=(0, -0.05),            
         color=color.white,            
         origin=(0, 0)
         )
@@ -127,7 +127,7 @@ class Game:
         background = Entity(
         model='quad',
         texture='assets/images/black.png',
-        scale=(5, 1),          
+        scale=(5.5, 1.5),          
         #color=color.Color(1, 1, 1, 0.5),
         z=-0.04,       
         position=(0, 0)             
