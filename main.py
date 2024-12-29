@@ -1,10 +1,8 @@
 from ursina import *
-import math
 from src.player import Player
-from src.npc import EnemyTank
 from src.game import Game
 from src.controller import KeyboardController, PS4Controller
-from src.types import CollisionEffect, EntityType
+from src.enums import EntityType
 
 
 app = Ursina()

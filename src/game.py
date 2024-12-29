@@ -1,7 +1,7 @@
 from ursina import *
 from src.settings import Settings
 from src.levels import load_map, get_levels_count
-from src.types import CollisionEffect, EntityType
+from src.enums import CollisionEffect, EntityType
 from src.npc import NpcSpawner
 
 class Game:
@@ -142,6 +142,26 @@ class Game:
         )
         self.over = True
     
+    def show_start_screen(self):
+        background = Entity(
+        model='quad',
+        texture='assets/images/black.png',
+        scale=(5.5, 1.5),          
+        #color=color.Color(1, 1, 1, 0.5),
+        z=-0.04,       
+        position=(0, 0)             
+        )
+
+
+        Start = Text(
+        text='Press shoot to start the game',
+        scale=1,
+        z=-0.03,
+        position=(0, 0),
+        color=color.white,
+        origin=(0, 0)
+        )    
+
     def create_tile_map(self):
         level_map = load_map(self.level_index)
         for y, row in enumerate(level_map):

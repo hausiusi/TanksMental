@@ -3,7 +3,7 @@ from src.game import Game
 from src.healthbar import HealthBar
 from src.tank import Tank
 from src.controller import BaseController
-from src.types import EntityType
+from src.enums import EntityType
 
 class Player(Tank):
     def __init__(self, game : Game, controller: BaseController, player_id: int, **kwargs):

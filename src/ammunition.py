@@ -1,6 +1,6 @@
 from ursina import *
 from src.effects import BulletEffect
-from src.types import EntityType
+from src.enums import EntityType
 
 class AmmoCatalog:
     def __init__(self, owner:Entity):

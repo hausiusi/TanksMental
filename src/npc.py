@@ -1,7 +1,7 @@
 from ursina import *
 from src.tank import Tank
 from src.levels import load_npcs
-from src.types import EntityType
+from src.enums import EntityType
 import random
 
 class EnemyTank(Tank):

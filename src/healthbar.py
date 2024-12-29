@@ -14,13 +14,6 @@ class HealthBar(Entity):
         )
         self.max_health = max_health
         self.current_health = current_health
-        self.background = Entity(
-            parent=self,
-            model='quad',
-            color=color.red,
-            scale=(self.initial_scale_x + 0.2, 0.03, 1),  # Background for border effect
-            z=-0.01  # Background behind health bar
-        )
 
     def update_health(self, new_health):
         self.current_health = max(0, min(new_health, self.max_health))

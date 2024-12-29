@@ -1,6 +1,6 @@
 from ursina import *
 from src.healthbar import HealthBar
-from src.types import CollisionEffect, EntityType, DropEffect
+from src.enums import CollisionEffect, EntityType, DropEffect
 from src.timer import Timer
 from src.ammunition import AmmoCatalog
 from src.drops import randomize_drop

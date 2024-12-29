@@ -1,5 +1,5 @@
 from ursina import *
-from src.types import EntityType, DropEffect
+from src.enums import EntityType, DropEffect
 from src.timer import Timer
 import random
 
