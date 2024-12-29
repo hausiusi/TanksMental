@@ -48,6 +48,7 @@ class NpcSpawner:
         self.npc_pools = load_npcs(level)
         self.spawned_count = 0
         self.npc_pool_index = 0
+        self.npcs_on_battlefield = 0
         self.total_npcs = 0
         for pool in self.npc_pools:
             self.total_npcs += pool['count']
@@ -71,6 +72,7 @@ class NpcSpawner:
                 enemy_tank = self.create_npc()
                 self.game.spawn(enemy_tank)
                 self.spawned_count += 1
+                self.npcs_on_battlefield += 1
                 self.npcs_available -= 1
 
                 if self.npcs_available == 0:  # NPC pool is empty
@@ -79,17 +81,21 @@ class NpcSpawner:
                         break
 
     def spawn_more(self):
+        self.npcs_on_battlefield -= 1
         if self.npcs_available == 0:
             index = self.npc_pool_index + 1
-            if self.__load_npc_pool(index):
+            if self.__load_npc_pool(index): # Ensure that no more NPCs are spawned than the maximum allowed
                 self.npc_pool_index = index
             else:
                 return
-        
+            
+        if self.npc_pool['at_once'] <= self.npcs_on_battlefield:
+            return
         enemy_tank = self.create_npc()
         self.game.spawn(enemy_tank)
         self.spawned_count += 1
         self.npcs_available -= 1
+        self.npcs_on_battlefield += 1
         print(f"Spawned {enemy_tank.name}. In total {self.spawned_count} NPCs spawned. There are {self.npcs_available} left in the pool")
 
     def level_complete(self):

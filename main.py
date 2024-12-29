@@ -173,7 +173,9 @@ def update():
             collided_entity = get_collision_element(bullet, bullet.velocity, 0.5)
             if bullet.visible and collided_entity != None:
                 if hasattr(collided_entity, 'takes_hit'):
-                    if collided_entity.entity_type == bullet.owner.entity_type:
+                    if (collided_entity.entity_type == bullet.owner.entity_type 
+                        or collided_entity.entity_type == EntityType.BOSS and bullet.owner.entity_type == EntityType.ENEMY_TANK
+                        or collided_entity.entity_type == EntityType.ENEMY_TANK and bullet.owner.entity_type == EntityType.BOSS):
                         break
                     if collided_entity.takes_hit:
                         collided_entity.durability -= bullet.hit_damage
