@@ -1,14 +1,42 @@
 from ursina import *
 from src.effects import BulletEffect
 from src.enums import EntityType
+from PIL import Image
 
 class AmmoCatalog:
     def __init__(self, owner:Entity):
         self.shoot_sound0 = Audio("assets/audio/shoot0.wav", autoplay=False, volume=1.0)
         self.shoot_sound1 = Audio("assets/audio/shoot1.wav", autoplay=False, volume=1.0)
+        texture_bullet0 = load_texture('assets/images/bullet0.png')
+        texture_bullet1 = load_texture('assets/images/bullet1.png')
+        def reduce_texture_resolution(texture, factor):
+            image = Image.open(texture.path)
+            image = image.resize((image.width // factor, image.height // factor), Image.LANCZOS)
+            return Texture(image)
+
+        texture_bullet0 = reduce_texture_resolution(texture_bullet0, 5)
+        texture_bullet1 = reduce_texture_resolution(texture_bullet1, 5)
         self.bullets = [
-            Entity(model='quad', texture='assets/images/bullet0.png', entity_type=EntityType.BULLET, color=color.yellow, scale=(0.1, 0.1), z=-0.1, visible=False, hit_damage=1, max_bullets=2, speed=10, shoot_sound=self.shoot_sound0),
-            Entity(model='quad', texture='assets/images/bullet1.png', entity_type=EntityType.BULLET, color=color.yellow, scale=(0.15, 0.15), z=-0.1, visible=False, hit_damage=2, max_bullets=1, speed=5, shoot_sound=self.shoot_sound1)
+            Entity(model='quad', 
+                   texture=texture_bullet0,
+                   entity_type=EntityType.BULLET, 
+                   color=color.yellow, scale=(0.1, 0.1), 
+                   z=-0.1, 
+                   visible=False, 
+                   hit_damage=1, 
+                   max_bullets=2, 
+                   speed=10, 
+                   shoot_sound=self.shoot_sound0),
+            Entity(model='quad', 
+                   texture=texture_bullet1, 
+                   entity_type=EntityType.BULLET, 
+                   color=color.yellow, 
+                   scale=(0.15, 0.15), 
+                   z=-0.1, visible=False, 
+                   hit_damage=2, 
+                   max_bullets=1, 
+                   speed=5, 
+                   shoot_sound=self.shoot_sound1)
         ]
 
         self.chosen_bullet_index = 0
@@ -44,4 +72,4 @@ class AmmoCatalog:
             if play_sound:
                 self.bullet.shoot_sound.play()
         except Exception as ex:
-            print(f"Object can't shoot the bullet {ex}")
+            print(f"{owner} Object can't shoot the bullet {ex}")
