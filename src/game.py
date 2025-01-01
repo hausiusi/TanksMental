@@ -18,6 +18,8 @@ class Game:
             Vec2(4, self.settings.screen_bottom),
         ]
 
+        self.paused = False
+        
         aspect_ratio = window.aspect_ratio  # Aspect ratio of the window
         self.left_edge = -0.5 * aspect_ratio
         self.right_edge = 0.5 * aspect_ratio

@@ -58,7 +58,7 @@ def update():
     global update_interval
     global is_game_over
 
-    if is_game_over:
+    if is_game_over or game.paused:
         return
     
     if is_edit_mode:

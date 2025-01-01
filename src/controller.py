@@ -68,7 +68,8 @@ class PS4Controller(BaseController):
             "left": joystick_state["buttons"].get(13, False),
             "right": joystick_state["buttons"].get(14, False),
             "previous_bullet": joystick_state["buttons"].get(9, False),
-            "next_bullet": joystick_state["buttons"].get(10, False)
+            "next_bullet": joystick_state["buttons"].get(10, False),
+            "pause": joystick_state["buttons"].get(6, False)
         }
     
 
@@ -86,7 +87,7 @@ class KeyboardController(BaseController):
         ret['right'] = held_keys['d'] == 1
         ret['previous_bullet'] = held_keys['u'] == 1
         ret['next_bullet'] = held_keys['i'] == 1
-
+        ret['pause'] = held_keys['escape'] == 1
         return ret
 
 if __name__ == '__main__':

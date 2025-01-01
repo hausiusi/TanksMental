@@ -16,6 +16,7 @@ class Player(Tank):
         self.controller.initialize_controller()
         self.bullet_switch_speed = 0.3
         self.last_bullet_switch = 0
+        self.pause_allowed = True
         self.move_audio = Audio("assets/audio/tank_move.ogg", volume=1, loop=True, autoplay=False)
 
         stat_items = {"player_id" : "Player", 
@@ -75,12 +76,24 @@ class Player(Tank):
         self.durability = self.health_bar.max_health
         self.rotation_z = 0 # Respawn pointing up
 
+    def toggle_pause(self):
+        self.game.paused = not self.game.paused
+
     def update(self):
         if self.game.over:
             return
         
-        if self.game.level_complete:
-            buttons_state = self.controller.get_buttons_state(self.player_id)
+        buttons_state = self.controller.get_buttons_state(self.player_id)
+        if buttons_state['pause'] and self.pause_allowed:
+            self.toggle_pause()
+            self.pause_allowed = False
+        elif not self.pause_allowed and not buttons_state['pause']:
+            self.pause_allowed = True
+        
+        if self.game.paused:
+            return
+
+        if self.game.level_complete:            
             if buttons_state['shoot']:
                 destroy(self.game.background)
                 destroy(self.game.level_completed_text)
@@ -107,7 +120,6 @@ class Player(Tank):
 
         movement_distance = 0.5
         direction = ""
-        buttons_state = self.controller.get_buttons_state(self.player_id)
         if buttons_state['left']:
             direction = 'a'
         elif buttons_state['up']:

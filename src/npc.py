@@ -14,6 +14,9 @@ class EnemyTank(Tank):
         self.bullet_interval_counter = 0
 
     def update(self):
+        if self.game.paused:
+            return
+
         # Enemy tank movement logic
         if self.turn_time_counter > self.next_turn_time:
             self.direction = random.randint(0, 3)  # Pick a random direction
