@@ -62,6 +62,7 @@ class PS4Controller(BaseController):
         joystick_state = self.states[player_index]
         return {
             "shoot": joystick_state["buttons"].get(0, False),
+            "drop": joystick_state["buttons"].get(1, False),
             "up": joystick_state["buttons"].get(11, False),
             "down": joystick_state["buttons"].get(12, False),
             "left": joystick_state["buttons"].get(13, False),
@@ -78,6 +79,7 @@ class KeyboardController(BaseController):
     def get_buttons_state(self, player_index: int = 0):
         ret = {}
         ret['shoot'] = held_keys['space'] == 1
+        ret['drop'] = held_keys['p'] == 1
         ret['up'] = held_keys['w'] == 1
         ret['down'] = held_keys['s'] == 1
         ret['left'] = held_keys['a'] == 1
@@ -93,6 +95,6 @@ if __name__ == '__main__':
     while True:
         state = ps4ctrl.get_buttons_state()
         pp = pprint.PrettyPrinter(indent=4)
-        #pp.pprint(ps4ctrl.states)
-        pp.pprint(state)
+        pp.pprint(ps4ctrl.states)
+        #pp.pprint(state)
         os.system('clear')

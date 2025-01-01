@@ -3,12 +3,20 @@ from src.settings import Settings
 from src.levels import load_map, get_levels_count
 from src.enums import CollisionEffect, EntityType
 from src.npc import NpcSpawner
+from src.startmenu import StartMenu
+from src.player import Player
 
 class Game:
     def __init__(self):
         self.settings = Settings()
-        self.controllers = []
         self.players = []
+        self.start_menu = StartMenu(all_tanks_selected_callback=self._init_game)
+        self.player_positions = [
+            Vec2(-2, self.settings.screen_bottom),
+            Vec2(2, self.settings.screen_bottom),
+            Vec2(-4, self.settings.screen_bottom),
+            Vec2(4, self.settings.screen_bottom),
+        ]
 
         aspect_ratio = window.aspect_ratio  # Aspect ratio of the window
         self.left_edge = -0.5 * aspect_ratio
@@ -17,6 +25,7 @@ class Game:
         self.over = False
         self.level_complete = False
         self.tile_size = 1
+        self.terrain_entities = []
 
         self.directions = {
             # Multiple variants for the same directions
@@ -69,6 +78,40 @@ class Game:
             )
             self.stat_text_pairs[key] = (name_text, value_text)
             pos_y -= 0.02
+    
+    def _init_game(self, controller_avatars: list):
+        position_index = 0
+        for controller_avatar in controller_avatars:
+            controller = controller_avatar.controller
+            player = Player(
+                game=self,
+                controller=controller,
+                player_id=controller_avatar.id,
+                model='quad',
+                texture=controller_avatar.parent.texture,
+                position=self.player_positions[position_index],
+                z=0,
+                scale=(0.8, 1),
+                color=controller_avatar.parent.color,
+                collider='box',
+                rigidbody=True,
+                bullets_on_screen=0,
+                is_tank=True,
+                can_shoot=True,
+                max_speed=2,
+                takes_hit=True,
+                durability=100,
+                is_exploded=False,
+                remove_counter=0,
+                remove_limit=3,
+            )
+            position_index += 1
+            self.players.append(player)
+
+        self.start_menu.destroy_startmenu_elements()
+        self.create_tile_map()
+        self.npc_spawner.load_level_npcs(self.level_index)
+        self.npc_spawner.spawn_initial_npcs()
 
     def update_no_barrier_entities(self):
         self.no_barrier_entities = [e for e in scene.entities if hasattr(e, "collision_effect") and e.collision_effect != CollisionEffect.BARRIER]
@@ -160,7 +203,12 @@ class Game:
         position=(0, 0),
         color=color.white,
         origin=(0, 0)
-        )    
+        )
+
+    def destroy_terrain_elements(self):
+        for entity in self.terrain_entities:
+            destroy(entity)
+        self.terrain_entities = []
 
     def create_tile_map(self):
         level_map = load_map(self.level_index)
@@ -247,6 +295,7 @@ class Game:
                         render_queue=1,
                         color = color.Color(1,1,1,1)
                     )
+                    self.terrain_entities.append(tile)
 
     @property
     def level(self):

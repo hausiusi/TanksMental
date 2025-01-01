@@ -1,12 +1,12 @@
 from ursina import *
-from src.game import Game
+#from src.game import Game
 from src.healthbar import HealthBar
 from src.tank import Tank
 from src.controller import BaseController
 from src.enums import EntityType
 
 class Player(Tank):
-    def __init__(self, game : Game, controller: BaseController, player_id: int, **kwargs):
+    def __init__(self, game, controller: BaseController, player_id: int, **kwargs):
         super().__init__(game, entity_type=EntityType.PLAYER_TANK, **kwargs)
         self.game = game
         self.controller = controller
@@ -85,12 +85,7 @@ class Player(Tank):
                 destroy(self.game.background)
                 destroy(self.game.level_completed_text)
                 destroy(self.game.press_key_text)
-                for entity in scene.entities:
-                    if hasattr(entity, "entity_type"):
-                        if (entity.entity_type != EntityType.PLAYER_TANK 
-                        and entity.entity_type != EntityType.BOSS
-                        and entity.entity_type != EntityType.BULLET):
-                            destroy(entity)
+                self.game.destroy_terrain_elements()
                 self.game.level_index += 1
                 if self.game.level_index >= self.game.levels_count:
                     self.game.show_you_win()
