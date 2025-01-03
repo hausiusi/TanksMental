@@ -17,6 +17,7 @@ class Player(Tank):
         self.bullet_switch_speed = 0.3
         self.last_bullet_switch = 0
         self.pause_allowed = True
+        self.landmine_drop_allowed = True
         self.move_audio = Audio("assets/audio/tank_move.ogg", volume=1, loop=True, autoplay=False)
 
         stat_items = {"player_id" : "Player", 
@@ -141,6 +142,12 @@ class Player(Tank):
             self.can_shoot = False
         elif not buttons_state['shoot']:
             self.can_shoot = True
+
+        if buttons_state['drop'] and self.landmine_drop_allowed:
+            self.ammunition.drop_landmine(self)
+            self.landmine_drop_allowed = False
+        elif not buttons_state['drop'] and not self.landmine_drop_allowed:
+            self.landmine_drop_allowed = True
 
         self.last_bullet_switch += time.dt
         if buttons_state['next_bullet'] and self.last_bullet_switch > self.bullet_switch_speed:

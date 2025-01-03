@@ -33,12 +33,16 @@ class MachineGunDrop(SupplyDrop):
     def __init__(self, **kwargs):
         super().__init__(color=color.white, texture="assets/images/machine_gun.png", drop_effect=DropEffect.MISSILE_RATE_INCREASE, **kwargs)
 
+class LandmineDrop(SupplyDrop):
+    def __init__(self, **kwargs):
+        super().__init__(color=color.white, texture="assets/images/landmine.png", drop_effect=DropEffect.LANDMINE_PICK, **kwargs)
 
 def randomize_drop(position):
     drop_list = [
         GunDrop,
         FastBulletDrop,
-        MachineGunDrop
+        MachineGunDrop,
+        LandmineDrop
     ]
 
     random.choice(drop_list)(position=position)

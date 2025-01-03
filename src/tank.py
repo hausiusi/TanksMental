@@ -127,6 +127,10 @@ class Tank(Entity):
                         self.ammunition.bullet.max_bullets += 1
                     if collided_entity.drop_effect == DropEffect.MISSILE_SPEED_INCREASE:
                         self.ammunition.bullet.speed += 1
+                    if collided_entity.drop_effect == DropEffect.LANDMINE_PICK:
+                        self.ammunition.add_landmine(self)
+                        self.ammunition.add_landmine(self)
+                        self.ammunition.add_landmine(self)
                     destroy(collided_entity)
                 elif (collided_entity.entity_type == EntityType.ENEMY_TANK 
                       or collided_entity.entity_type == EntityType.PLAYER_TANK or 
@@ -134,6 +138,11 @@ class Tank(Entity):
                     if collided_entity.collision_effect == CollisionEffect.BARRIER:
                         movement_is_allowed = False
                         break
+                if collided_entity.entity_type == EntityType.LANDMINE:
+                    if collided_entity.collision_effect == CollisionEffect.DAMAGE_EXPLOSION:
+                        self.durability -= collided_entity.effect_strength
+                        self.check_destroy()
+                        destroy(collided_entity)
         
         if movement_is_allowed:
             next_position = self.position + direction_vector * (time.dt * self.speed)
@@ -155,6 +164,8 @@ class Tank(Entity):
         self.burn_damage_timer.update()
         self.wet_damage_timer.update()
         self.slow_down_timer.update()
+        self.ammunition.landmine_activation_timer.update()
+        
         if self.is_exploded:
             self.remove_counter += time.dt
             if self.remove_counter > self.remove_limit:

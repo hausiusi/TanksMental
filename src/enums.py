@@ -7,6 +7,7 @@ class CollisionEffect(Enum):
     SLIDE = 3
     DAMAGE_BURN = 4
     DAMAGE_WET = 5
+    DAMAGE_EXPLOSION = 6
 
 class EntityType(Enum):
     PLAYER_TANK = 0
@@ -16,8 +17,10 @@ class EntityType(Enum):
     BASE = 5
     BOSS = 6
     BULLET = 7
+    LANDMINE = 8
 
 class DropEffect(Enum):
     MISSILE_DAMAGE_INCREASE = 0
     MISSILE_SPEED_INCREASE = 1
     MISSILE_RATE_INCREASE = 2
+    LANDMINE_PICK = 3
