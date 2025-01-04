@@ -95,7 +95,7 @@ class Game:
             player = Player(
                 game=self,
                 controller=controller,
-                player_id=controller_avatar.id,
+                player_id=position_index,
                 model='quad',
                 texture=controller_avatar.parent.texture,
                 position=self.player_positions[position_index],

@@ -21,70 +21,7 @@ class Player(Tank):
         self.landmine_drop_allowed = True
         self.move_audio = Audio("assets/audio/tank_move.ogg", volume=1, loop=True, autoplay=False)
         
-        stat_items = {"player_id" : "Player", 
-                      "health" : "Health", 
-                      "speed" : "Speed", 
-                      "bullet_hit_damage" : "Hit damage",
-                      "bullet_speed": "Missile speed",
-                      "bullets_on_screen" : "Visible bullets",
-                      "bullets_max" : "Max bullets",
-                      "tanks_damage_dealt" : "Tanks dmg",
-                      "other_damage_dealt" : "Other dmg",
-                      "total_damage_dealt" : "Total dmg",
-                      "kills" : "Kills"
-                      }
-        self.stat_text_pairs = []
-        pos_y = 0
-        pos_x = 0
-        icon_pos = (0, 0)
-        if player_id == 0:
-            pos_x = self.game.left_edge
-            pos_y = 0.3            
-        elif player_id == 1:
-            pos_x = self.game.right_edge - 0.15
-            pos_y = 0.3
-        elif player_id == 2:
-            pos_x = self.game.left_edge
-            pos_y = -0.3
-        elif player_id == 3:
-            pos_x = self.game.right_edge - 0.15
-            pos_y = -0.3
-
-        # Place the player icon just above the stats
-        icon_pos = self.game.pos_text_to_pos_entity(Vec2(pos_x, pos_y))  
-        icon_pos.y += self.settings.player_icon_scale / 2 + 0.05
-        icon_pos.x += self.settings.player_icon_scale / 2
-        self.player_icon = Entity(
-            model='quad', 
-            position=icon_pos, 
-            texture=self.texture,
-            color=self.color,
-            scale=(self.settings.player_icon_scale, self.settings.player_icon_scale), 
-            z=-0.1)
-
-        origin_x = -0.5
-        for key in stat_items.keys():
-            value = getattr(self, key)
-            name_text = Text(
-            name=key,
-            text=f"{stat_items[key]}",
-            scale=0.6,
-            position=(pos_x, pos_y),
-            z=-0.1,
-            color=color.white,
-            origin=(origin_x, pos_y)
-            )
-
-            value_text = Text(
-            text=f"{value}",
-            scale=0.6,
-            position=(pos_x + 0.1, pos_y),
-            z=-0.1,
-            color=color.white,
-            origin=(origin_x, pos_y)
-            )
-            self.stat_text_pairs.append((name_text, value_text))
-            pos_y -= 0.02
+        self.prepare_stats()
 
     def respawn(self):
         self.game.spawn(self)
@@ -180,4 +117,69 @@ class Player(Tank):
             value = getattr(self, attr)
             stat_text_pair[1].text = f'{value}'
 
-        
+    def prepare_stats(self):
+        stat_items = {"player_id" : "Player", 
+                      "health" : "Health", 
+                      "speed" : "Speed", 
+                      "bullet_hit_damage" : "Hit damage",
+                      "bullet_speed": "Missile speed",
+                      "bullets_on_screen" : "Visible bullets",
+                      "bullets_max" : "Max bullets",
+                      "tanks_damage_dealt" : "Tanks dmg",
+                      "other_damage_dealt" : "Other dmg",
+                      "total_damage_dealt" : "Total dmg",
+                      "kills" : "Kills",
+                      "deaths" : "Deaths"
+                      }
+        self.stat_text_pairs = []
+        pos_y = 0
+        pos_x = 0
+        icon_pos = (0, 0)
+        if self.player_id == 0:
+            pos_x = self.game.left_edge
+            pos_y = 0.3            
+        elif self.player_id == 1:
+            pos_x = self.game.right_edge - 0.15
+            pos_y = 0.3
+        elif self.player_id == 2:
+            pos_x = self.game.left_edge
+            pos_y = -0.2
+        elif self.player_id == 3:
+            pos_x = self.game.right_edge - 0.15
+            pos_y = -0.2
+
+        # Place the player icon just above the stats
+        icon_pos = self.game.pos_text_to_pos_entity(Vec2(pos_x, pos_y))  
+        icon_pos.y += self.settings.player_icon_scale / 2 + (0.05 if icon_pos.y > 0 else 0.15)
+        icon_pos.x += self.settings.player_icon_scale / 2
+        self.player_icon = Entity(
+            model='quad', 
+            position=icon_pos, 
+            texture=self.texture,
+            color=self.color,
+            scale=(self.settings.player_icon_scale, self.settings.player_icon_scale), 
+            z=-0.1)
+
+        origin_x = -0.5
+        for key in stat_items.keys():
+            value = getattr(self, key)
+            name_text = Text(
+            name=key,
+            text=f"{stat_items[key]}",
+            scale=0.6,
+            position=(pos_x, pos_y),
+            z=-0.1,
+            color=color.white,
+            origin=(origin_x, pos_y)
+            )
+
+            value_text = Text(
+            text=f"{value}",
+            scale=0.6,
+            position=(pos_x + 0.1, pos_y),
+            z=-0.1,
+            color=color.white,
+            origin=(origin_x, pos_y)
+            )
+            self.stat_text_pairs.append((name_text, value_text))
+            pos_y -= 0.02
