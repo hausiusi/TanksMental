@@ -9,6 +9,11 @@ from src.player import Player
 class Game:
     def __init__(self):
         self.settings = Settings()
+        camera.orthographic = True
+        camera.fov = self.settings.camera_fov
+        window.fullscreen = self.settings.fullscreen
+        window.exit_button.visible = False
+
         self.players = []
         self.start_menu = StartMenu(all_tanks_selected_callback=self._init_game)
         self.player_positions = [
@@ -19,10 +24,12 @@ class Game:
         ]
 
         self.paused = False
-        
-        aspect_ratio = window.aspect_ratio  # Aspect ratio of the window
-        self.left_edge = -0.5 * aspect_ratio
-        self.right_edge = 0.5 * aspect_ratio
+
+        self.aspect_ratio = window.aspect_ratio  # Aspect ratio of the window
+        self.left_edge = -0.5 * self.aspect_ratio
+        self.right_edge = 0.5 * self.aspect_ratio
+        self.top_edge = 0.5
+        self.bottom_edge = -0.5 # The bottom edge of the screen
         self.no_barrier_entities = []
         self.over = False
         self.level_complete = False
@@ -114,6 +121,10 @@ class Game:
         self.create_tile_map()
         self.npc_spawner.load_level_npcs(self.level_index)
         self.npc_spawner.spawn_initial_npcs()
+
+    def pos_text_to_pos_entity(self, pos_text):
+        return Vec2((pos_text.x / self.right_edge) * self.settings.horizontal_span / 2,
+                    (pos_text.y / self.top_edge) * self.settings.vertical_span / 2)
 
     def update_no_barrier_entities(self):
         self.no_barrier_entities = [e for e in scene.entities if hasattr(e, "collision_effect") and e.collision_effect != CollisionEffect.BARRIER]

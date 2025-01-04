@@ -140,6 +140,8 @@ class Tank(Entity):
                         break
                 if collided_entity.entity_type == EntityType.LANDMINE:
                     if collided_entity.collision_effect == CollisionEffect.DAMAGE_EXPLOSION:
+                        damage_amount = min(self.durability, collided_entity.effect_strength)
+                        collided_entity.owner.tanks_damage_dealt += damage_amount
                         self.durability -= collided_entity.effect_strength
                         self.check_destroy()
                         destroy(collided_entity)
@@ -165,7 +167,7 @@ class Tank(Entity):
         self.wet_damage_timer.update()
         self.slow_down_timer.update()
         self.ammunition.landmine_activation_timer.update()
-        
+
         if self.is_exploded:
             self.remove_counter += time.dt
             if self.remove_counter > self.remove_limit:

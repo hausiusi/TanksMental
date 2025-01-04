@@ -9,6 +9,7 @@ class Player(Tank):
     def __init__(self, game, controller: BaseController, player_id: int, **kwargs):
         super().__init__(game, entity_type=EntityType.PLAYER_TANK, **kwargs)
         self.game = game
+        self.settings = game.settings
         self.controller = controller
         self.player_id = player_id        
         self.initial_position = self.position
@@ -19,7 +20,7 @@ class Player(Tank):
         self.pause_allowed = True
         self.landmine_drop_allowed = True
         self.move_audio = Audio("assets/audio/tank_move.ogg", volume=1, loop=True, autoplay=False)
-
+        
         stat_items = {"player_id" : "Player", 
                       "health" : "Health", 
                       "speed" : "Speed", 
@@ -35,15 +36,31 @@ class Player(Tank):
         self.stat_text_pairs = []
         pos_y = 0
         pos_x = 0
+        icon_pos = (0, 0)
         if player_id == 0:
             pos_x = self.game.left_edge
-            pos_y = 0.3
+            pos_y = 0.3            
         elif player_id == 1:
             pos_x = self.game.right_edge - 0.15
             pos_y = 0.3
         elif player_id == 2:
             pos_x = self.game.left_edge
-            pos_y = 0
+            pos_y = -0.3
+        elif player_id == 3:
+            pos_x = self.game.right_edge - 0.15
+            pos_y = -0.3
+
+        # Place the player icon just above the stats
+        icon_pos = self.game.pos_text_to_pos_entity(Vec2(pos_x, pos_y))  
+        icon_pos.y += self.settings.player_icon_scale / 2 + 0.05
+        icon_pos.x += self.settings.player_icon_scale / 2
+        self.player_icon = Entity(
+            model='quad', 
+            position=icon_pos, 
+            texture=self.texture,
+            color=self.color,
+            scale=(self.settings.player_icon_scale, self.settings.player_icon_scale), 
+            z=-0.1)
 
         origin_x = -0.5
         for key in stat_items.keys():
@@ -162,3 +179,5 @@ class Player(Tank):
             attr = stat_text_pair[0].name
             value = getattr(self, attr)
             stat_text_pair[1].text = f'{value}'
+
+        

@@ -6,10 +6,6 @@ from src.enums import EntityType
 
 
 app = Ursina()
-camera.orthographic = False
-camera.fov = 50
-window.fullscreen = True
-window.exit_button.visible = False
 
 game = Game()
 controller = PS4Controller()
