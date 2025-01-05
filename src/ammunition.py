@@ -17,7 +17,6 @@ class Landmine(Entity):
             z=0, 
             visible=True, 
             effect_strength=50,
-            shoot_sound=None,
             **kwargs
             )
         self.owner = owner
@@ -39,6 +38,7 @@ class AmmoCatalog:
     def __init__(self, owner:Entity):
         self.shoot_sound0 = Audio("assets/audio/shoot0.wav", autoplay=False, volume=1.0)
         self.shoot_sound1 = Audio("assets/audio/shoot1.wav", autoplay=False, volume=1.0)
+        self.landmine_deploy_sound = Audio('assets/audio/landmine_drop.ogg', autoplay=False, volume=1.0)
         self.landmines_count = 0
         self.landmine_activation_timer = Timer(3, 1, lambda _: None, lambda: None)  
 
@@ -121,10 +121,12 @@ class AmmoCatalog:
             self.landmines_count = 0
             # remove landmine effect from owner
 
-    def drop_landmine(self, owner:Entity):
+    def deploy_landmine(self, owner:Entity, play_sound=False):
         if self.landmines_count == 0:
             return
         
         self.subtract_landmine(owner)
         landmine = Landmine(owner)
+        if play_sound:
+            self.landmine_deploy_sound.play()
         landmine.activate()

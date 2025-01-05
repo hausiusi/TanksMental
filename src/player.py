@@ -1,9 +1,9 @@
 from ursina import *
-#from src.game import Game
 from src.healthbar import HealthBar
 from src.tank import Tank
 from src.controller import BaseController
 from src.enums import EntityType
+from src.ammobar import AmmoBar
 
 class Player(Tank):
     def __init__(self, game, controller: BaseController, player_id: int, **kwargs):
@@ -98,7 +98,7 @@ class Player(Tank):
             self.can_shoot = True
 
         if buttons_state['drop'] and self.landmine_drop_allowed:
-            self.ammunition.drop_landmine(self)
+            self.ammunition.deploy_landmine(self, play_sound=True)
             self.landmine_drop_allowed = False
         elif not buttons_state['drop'] and not self.landmine_drop_allowed:
             self.landmine_drop_allowed = True
@@ -116,6 +116,7 @@ class Player(Tank):
             attr = stat_text_pair[0].name
             value = getattr(self, attr)
             stat_text_pair[1].text = f'{value}'
+        self.landmine_stat.set_ammo_bars(self.ammunition.landmines_count)
 
     def prepare_stats(self):
         stat_items = {"player_id" : "Player", 
@@ -143,12 +144,12 @@ class Player(Tank):
             pos_y = 0.3
         elif self.player_id == 2:
             pos_x = self.game.left_edge
-            pos_y = -0.2
+            pos_y = -0.1
         elif self.player_id == 3:
             pos_x = self.game.right_edge - 0.15
-            pos_y = -0.2
+            pos_y = -0.1
 
-        # Place the player icon just above the stats
+        # Place the player icon above the stats
         icon_pos = self.game.pos_text_to_pos_entity(Vec2(pos_x, pos_y))  
         icon_pos.y += self.settings.player_icon_scale / 2 + (0.05 if icon_pos.y > 0 else 0.15)
         icon_pos.x += self.settings.player_icon_scale / 2
@@ -161,6 +162,7 @@ class Player(Tank):
             z=-0.1)
 
         origin_x = -0.5
+        # Text stats preparation
         for key in stat_items.keys():
             value = getattr(self, key)
             name_text = Text(
@@ -183,3 +185,8 @@ class Player(Tank):
             )
             self.stat_text_pairs.append((name_text, value_text))
             pos_y -= 0.02
+
+        landmine_pos = self.game.pos_text_to_pos_entity(Vec2(pos_x, pos_y))
+        landmine_icon_scale = (0.2, 0.2)
+        landmine_pos.x += landmine_icon_scale[0]/2
+        self.landmine_stat = AmmoBar(max=10, count=0, icon_scale=landmine_icon_scale, position=landmine_pos, texture='assets/images/landmine.png')
