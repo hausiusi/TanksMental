@@ -146,7 +146,7 @@ class Tank(Entity):
                         collided_entity.owner.tanks_damage_dealt += damage_amount
                         self.durability -= collided_entity.effect_strength
                         self.check_destroy()
-                        destroy(collided_entity)
+                        collided_entity.explode()
         
         if movement_is_allowed:
             next_position = self.position + direction_vector * (time.dt * self.speed)
@@ -187,7 +187,7 @@ class Tank(Entity):
                 if hasattr(collided_entity, 'takes_hit'):
                     # This if and break affect the performance - consider fixing it
                     if (collided_entity.entity_type == self.ammunition.owner.entity_type 
-                        or collided_entity.entity_type == EntityType.BOSS and bullet.owner.entity_type == EntityType.ENEMY_TANK
+                        or collided_entity.entity_type == EntityType.BOSS and self.ammunition.owner.entity_type == EntityType.ENEMY_TANK
                         or collided_entity.entity_type == EntityType.ENEMY_TANK and self.entity_type == EntityType.BOSS):
                         break
                     if collided_entity.takes_hit:

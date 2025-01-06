@@ -2,10 +2,11 @@ from ursina import *
 from src.effects import BulletEffect
 from src.enums import EntityType, CollisionEffect
 from src.timer import Timer
+from src.spranimator import SpriteAnimator
 from PIL import Image
 
 class Landmine(Entity):
-    def __init__(self, owner, **kwargs):
+    def __init__(self, owner, activation_sound, explosion_sound, explosion_animation : SpriteAnimator, **kwargs):
         super().__init__(
             model='quad', 
             texture='assets/images/landmine.png', 
@@ -19,12 +20,16 @@ class Landmine(Entity):
             effect_strength=50,
             **kwargs
             )
+        self.explosion_animation = explosion_animation
+        self.activation_sound = activation_sound
+        self.explosion_sound = explosion_sound
         self.owner = owner
         self.activation_timer = Timer(3, 1, lambda _: None, self.activate)
         self.position = owner.position
     
     def activate(self):
         def _activate():
+            self.activation_sound.play()
             self.collision_effect = CollisionEffect.DAMAGE_EXPLOSION
             self.color = color.red
             print("landmine activated")
@@ -33,6 +38,13 @@ class Landmine(Entity):
 
     def update(self):
         self.activation_timer.update()
+
+    def _destroy(self):
+        destroy(self)
+
+    def explode(self):
+        self.explosion_sound.play()
+        self.explosion_animation.animate(self, self._destroy)
 
 
 class Bullet(Entity):
@@ -100,6 +112,10 @@ class AmmoCatalog:
         self.shoot_sound0 = Audio("assets/audio/shoot0.wav", autoplay=False, volume=1.0)
         self.shoot_sound1 = Audio("assets/audio/shoot1.wav", autoplay=False, volume=1.0)
         self.landmine_deploy_sound = Audio('assets/audio/landmine_drop.ogg', autoplay=False, volume=1.0)
+        self.landmine_activation_sound = Audio('assets/audio/landmine_activation.ogg', autoplay=False, volume=0.2)
+        self.landmine_explosion_sound = Audio('assets/audio/landmine_explosion.ogg', autoplay=False, volume=1.0)
+
+        self.landmine_explosion_animation = SpriteAnimator('assets/animations/landmine_explosion', delay=0.04)
         self.landmines_count = 0
         self.landmine_activation_timer = Timer(3, 1, lambda _: None, lambda: None)  
 
@@ -188,7 +204,10 @@ class AmmoCatalog:
             return
         
         self.subtract_landmine(self.owner)
-        landmine = Landmine(self.owner)
+        landmine = Landmine(owner=self.owner, 
+                            activation_sound=self.landmine_activation_sound,                             
+                            explosion_sound=self.landmine_explosion_sound, 
+                            explosion_animation=self.landmine_explosion_animation)
         if play_sound:
             self.landmine_deploy_sound.play()
         landmine.activate()

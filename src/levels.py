@@ -70,10 +70,10 @@ npcs = [
                     'color'         : color.white,
                     'scale'         : (0.8, 1),
                     'max_speed'     : 1,
-                    'max_bullets'   : 3,
+                    'max_bullets'   : 1,
                     'chosen_bullet' : 0,
                     'durability'    : 10,
-                    'count'         : 50,
+                    'count'         : 5,
                     'at_once'       : 5
                 },
                 {
