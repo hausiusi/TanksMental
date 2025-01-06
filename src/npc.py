@@ -31,12 +31,8 @@ class EnemyTank(Tank):
         self.bullet_interval_counter += time.dt
 
         if (self.bullet_interval_counter > self.least_interval_between_bullets 
-            and not self.is_exploded 
-            and self.bullets_on_screen < self.bullets_max):
-            if self.bullets_on_screen < 0:
-                self.bullets_on_screen = 0
-                
-            self.ammunition.shoot_bullet(self)
+            and not self.is_exploded):                
+            self.ammunition.shoot_bullet(False)
             self.bullet_interval_counter = 0
             self.health_bar.update_health(self.durability)
 
@@ -120,7 +116,6 @@ class NpcSpawner:
                 takes_hit=True,
                 durability=self.npc_pool['durability'],
                 is_tank=True,
-                bullets_on_screen=0,
                 can_shoot=True,
                 max_speed=self.npc_pool['max_speed'],
                 direction=0,
@@ -128,8 +123,8 @@ class NpcSpawner:
                 remove_counter=0,
                 remove_limit=1
             )
-        enemy_tank.ammunition.choose_bullet(self.npc_pool['chosen_bullet'])
-        enemy_tank.ammunition.bullet.max_bullets = self.npc_pool['max_bullets']
+        enemy_tank.ammunition.choose_bullet_pool(self.npc_pool['chosen_bullet'])
+        enemy_tank.ammunition.bullet_pool.max_bullets = self.npc_pool['max_bullets']
         enemy_tank.on_destroy=self.level_complete if enemy_tank.entity_type==EntityType.BOSS else self.spawn_more
 
         return enemy_tank

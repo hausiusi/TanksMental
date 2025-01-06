@@ -34,8 +34,69 @@ class Landmine(Entity):
     def update(self):
         self.activation_timer.update()
 
+
+class Bullet(Entity):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.entity_type=EntityType.BULLET
+
+class BulletPool:
+    def __init__(self, owner, pool_size, hit_damage, bullet_speed, shoot_sound, bullet):
+        if pool_size < 1:
+            raise Exception("BulletPool object must have size 1 or more")
+        self.texture = bullet.texture
+        self.bullet_blueprint = bullet
+        self.pool = [duplicate(bullet) for _ in range(pool_size)]
+        self.active_bullets = []
+        self.size = pool_size
+        self.hit_damage = hit_damage
+        self.shoot_sound = shoot_sound
+        self.bullet_speed = bullet_speed
+        self.owner = owner
+    
+    @property
+    def max_bullets(self):
+        return self.size
+    
+    @max_bullets.setter
+    def max_bullets(self, value):
+        delta = value - self.size
+        self.size = value
+        if delta > 0:
+            for _ in range(delta):
+                self.pool.append(duplicate(self.bullet_blueprint))
+        elif delta < 0:
+            for _ in range(delta):
+                self.pool.pop()
+        
+
+    def take_bullet(self):
+        if self.pool:
+            bullet = self.pool.pop()
+            self.active_bullets.append(bullet)
+            return bullet
+        return None
+
+    def release_bullet(self, bullet):
+        self.active_bullets.remove(bullet)
+        self.pool.append(bullet)
+        bullet.visible = False
+
+    def increase_pool(self):
+        self.pool.append(duplicate(self.pool[0]))
+
+    def destroy_bullets(self):
+        for bullet in self.pool:
+            destroy(bullet)
+        self.pool.clear()
+        for bullet in self.active_bullets:
+            destroy(bullet)
+        self.active_bullets.clear()
+
 class AmmoCatalog:
     def __init__(self, owner:Entity):
+        self.owner = owner
+        self.game = owner.game
         self.shoot_sound0 = Audio("assets/audio/shoot0.wav", autoplay=False, volume=1.0)
         self.shoot_sound1 = Audio("assets/audio/shoot1.wav", autoplay=False, volume=1.0)
         self.landmine_deploy_sound = Audio('assets/audio/landmine_drop.ogg', autoplay=False, volume=1.0)
@@ -51,65 +112,66 @@ class AmmoCatalog:
 
         texture_bullet0 = reduce_texture_resolution(texture_bullet0, 5)
         texture_bullet1 = reduce_texture_resolution(texture_bullet1, 5)
-        self.bullets = [
-            Entity(model='quad', 
-                   texture=texture_bullet0,
-                   entity_type=EntityType.BULLET, 
-                   color=color.yellow, scale=(0.1, 0.1), 
+        self.bullet_pools = []
+        bullet = Bullet(owner=owner, model='quad', 
+                   texture=texture_bullet0, 
+                   color=color.white, scale=(0.1, 0.1), 
                    z=-0.1, 
-                   visible=False, 
-                   hit_damage=1, 
-                   max_bullets=2, 
-                   speed=10, 
-                   shoot_sound=self.shoot_sound0),
-            Entity(model='quad', 
+                   visible=False)
+        self.bullet_pools.append(BulletPool(owner=owner, 
+                                            hit_damage=1,
+                                            bullet_speed=10,
+                                            pool_size=2,
+                                            shoot_sound=self.shoot_sound0,
+                                            bullet=bullet))
+
+        bullet = Bullet(owner=owner, model='quad', 
                    texture=texture_bullet1, 
-                   entity_type=EntityType.BULLET, 
-                   color=color.yellow, 
+                   color=color.white, 
                    scale=(0.15, 0.15), 
-                   z=-0.1, 
-                   visible=False, 
-                   hit_damage=2, 
-                   max_bullets=1, 
-                   speed=5, 
-                   shoot_sound=self.shoot_sound1)
-        ]
+                   z=-0.1,
+                   visible=False)
+        self.bullet_pools.append(BulletPool(owner=owner, 
+                                            hit_damage=2,
+                                            bullet_speed=5,
+                                            pool_size=2,
+                                            shoot_sound=self.shoot_sound1,
+                                            bullet=bullet))
 
         self.owner = owner
         self.bullet_effect = None
-        self.choose_bullet(0)
+        self.choose_bullet_pool(0)
 
-    def choose_bullet(self, bullet_variant):
-        self.bullet = self.bullets[bullet_variant]
-        self.chosen_bullet_index = bullet_variant
+    def choose_bullet_pool(self, bullet_pool_index):
+        self.bullet_pool : BulletPool = self.bullet_pools[bullet_pool_index]
+        self.chosen_bullet_index = bullet_pool_index
         if self.bullet_effect is None:
-            self.bullet_effect = BulletEffect(self.owner, self.bullet.texture)
-        self.bullet_effect.texture = self.bullet.texture
+            self.bullet_effect = BulletEffect(self.owner, self.bullet_pool.texture)
+        self.bullet_effect.texture = self.bullet_pool.texture
 
     def next_bullet_variant(self):
         self.chosen_bullet_index += 1
-        if self.chosen_bullet_index >= len(self.bullets):
+        if self.chosen_bullet_index >= len(self.bullet_pools):
             self.chosen_bullet_index = 0
 
-        self.choose_bullet(self.chosen_bullet_index)
+        self.choose_bullet_pool(self.chosen_bullet_index)
 
-    def shoot_bullet(self, owner:Entity, play_sound=False):
-        try:
-            bullet = duplicate(self.bullet)  
-            bullet.rotation_z = owner.rotation_z
-            offset_x = math.sin(math.radians(owner.rotation_z)) * owner.scale_x * 0.65  # Move 0.5 units forward in x
-            offset_y = math.cos(math.radians(owner.rotation_z)) * owner.scale_y * 0.65 # Move 0.5 units forward in y
-            bullet.position = owner.position + Vec3(offset_x, offset_y, 0)
-            bullet.visible = True 
-            bullet.velocity = Vec3(sin(math.radians(owner.rotation_z)) * owner.ammunition.bullet.speed,
-                                cos(math.radians(owner.rotation_z)) * owner.ammunition.bullet.speed, 0)  # Set bullet velocity
-            bullet.owner = owner
-            owner.bullets_on_screen += 1
-            bullet.hit_damage = self.bullet.hit_damage
-            if play_sound:
-                self.bullet.shoot_sound.play()
-        except Exception as ex:
-            print(f"{owner} Object can't shoot the bullet {ex}")
+    def shoot_bullet(self, play_sound=False):
+        bullet = self.bullet_pool.take_bullet()
+        if bullet is None:
+            return
+        
+        owner = self.owner
+        bullet.rotation_z = owner.rotation_z
+        offset_x = math.sin(math.radians(owner.rotation_z)) * owner.scale_x * 0.65
+        offset_y = math.cos(math.radians(owner.rotation_z)) * owner.scale_y * 0.65
+        bullet.position = owner.position + Vec3(offset_x, offset_y, 0)
+        bullet.visible = True
+        bullet.velocity = Vec3(sin(math.radians(owner.rotation_z)) * self.bullet_pool.bullet_speed,
+                            cos(math.radians(owner.rotation_z)) * self.bullet_pool.bullet_speed, 0)  # Set bullet velocity
+        bullet.hit_damage = self.bullet_pool.hit_damage
+        if play_sound:
+            self.bullet_pool.shoot_sound.play()
 
     def add_landmine(self, owner:Entity):
         self.landmines_count += 1
@@ -121,12 +183,12 @@ class AmmoCatalog:
             self.landmines_count = 0
             # remove landmine effect from owner
 
-    def deploy_landmine(self, owner:Entity, play_sound=False):
+    def deploy_landmine(self, play_sound=False):
         if self.landmines_count == 0:
             return
         
-        self.subtract_landmine(owner)
-        landmine = Landmine(owner)
+        self.subtract_landmine(self.owner)
+        landmine = Landmine(self.owner)
         if play_sound:
             self.landmine_deploy_sound.play()
         landmine.activate()

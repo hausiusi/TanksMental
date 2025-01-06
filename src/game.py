@@ -35,6 +35,7 @@ class Game:
         self.level_complete = False
         self.tile_size = 1
         self.terrain_entities = []
+        self.active_bullets = []
 
         self.directions = {
             # Multiple variants for the same directions
@@ -104,7 +105,6 @@ class Game:
                 color=controller_avatar.parent.color,
                 collider='box',
                 rigidbody=True,
-                bullets_on_screen=0,
                 is_tank=True,
                 can_shoot=True,
                 max_speed=2,
@@ -268,7 +268,7 @@ class Game:
                     elif val == 5:
                         tile_texture = 'assets/images/stones0.png'
                         collision_effect = CollisionEffect.SLOW_DOWN
-                        effect_strength = 50
+                        effect_strength = 40
                         name = f'stones_{x}_{y}'
                     elif val == 6:
                         tile_texture = 'assets/images/white_wall.png'

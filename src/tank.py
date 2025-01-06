@@ -21,7 +21,7 @@ class Tank(Entity):
         self.deaths = 0
 
         self.burn_damage_timer = Timer(timeout=1, counts=10, tick_callback=self.apply_burn_damage, end_callback=self.stop_burn_damage)
-        self.wet_damage_timer = Timer(timeout=10, counts=1, tick_callback=self.apply_wet_damage, end_callback=self.stop_wet_damage)
+        self.wet_damage_timer = Timer(timeout=5, counts=1, tick_callback=self.apply_wet_damage, end_callback=self.stop_wet_damage)
         self.slow_down_timer = Timer(timeout=0.2, counts=1, tick_callback=self.apply_slow_down, end_callback=self.stop_slow_down)
 
         self.ammunition = AmmoCatalog(self)
@@ -46,15 +46,15 @@ class Tank(Entity):
     
     @property
     def bullets_max(self):
-        return self.ammunition.bullet.max_bullets
+        return self.ammunition.bullet_pool.max_bullets
     
     @property
     def bullet_hit_damage(self):
-        return self.ammunition.bullet.hit_damage
+        return self.ammunition.bullet_pool.hit_damage
     
     @property
     def bullet_speed(self):
-        return self.ammunition.bullet.speed        
+        return self.ammunition.bullet_pool.bullet_speed        
     
     def apply_burn_damage(self, effect):
         self.fire_effect.visible = True
@@ -124,11 +124,11 @@ class Tank(Entity):
                             self.wet_damage_timer.start(collided_entity.effect_strength)
                 elif collided_entity.entity_type == EntityType.SUPPLY_DROP:
                     if collided_entity.drop_effect == DropEffect.MISSILE_DAMAGE_INCREASE:
-                        self.ammunition.bullet.hit_damage += 1
+                        self.ammunition.bullet_pool.hit_damage += 1
                     if collided_entity.drop_effect == DropEffect.MISSILE_RATE_INCREASE:
-                        self.ammunition.bullet.max_bullets += 1
+                        self.ammunition.bullet_pool.max_bullets += 1
                     if collided_entity.drop_effect == DropEffect.MISSILE_SPEED_INCREASE:
-                        self.ammunition.bullet.speed += 1
+                        self.ammunition.bullet_pool.bullet_speed += 1
                     if collided_entity.drop_effect == DropEffect.LANDMINE_PICK:
                         self.ammunition.add_landmine(self)
                         self.ammunition.add_landmine(self)
@@ -161,7 +161,57 @@ class Tank(Entity):
         if direction == 3 or direction == 'a':
             self.rotation_z = -90
 
+    @staticmethod
+    def get_collision_element(element, direction, distance):
+        """Gets the entity that was collided with passed entity"""
+        try:
+            ray = raycast(element.position, direction, ignore=[element], distance=distance)
+            if ray.hit:
+                return ray.entity
+        except Exception as ex:
+            pass
+        return None
+
+    def move_bullet(self, dt):
+        pool = self.ammunition.bullet_pool
+        for bullet in self.ammunition.bullet_pool.active_bullets:
+            bullet.position += bullet.velocity * dt
+            # Destroy bullet if it goes off-screen
+            if not self.game.is_on_screen(bullet):                
+                #destroy(bullet)
+                #bullet.owner.bullets_on_screen -= 1
+                pool.release_bullet(bullet)
+                return
+            collided_entity = self.get_collision_element(bullet, bullet.velocity, 0.5)
+            if bullet.visible and collided_entity != None:
+                if hasattr(collided_entity, 'takes_hit'):
+                    # This if and break affect the performance - consider fixing it
+                    if (collided_entity.entity_type == self.ammunition.owner.entity_type 
+                        or collided_entity.entity_type == EntityType.BOSS and bullet.owner.entity_type == EntityType.ENEMY_TANK
+                        or collided_entity.entity_type == EntityType.ENEMY_TANK and self.entity_type == EntityType.BOSS):
+                        break
+                    if collided_entity.takes_hit:
+                        collided_entity.durability -= bullet.hit_damage
+                        if collided_entity.durability <= 0:
+                            if hasattr(collided_entity, 'is_tank'):
+                                    if not collided_entity.is_exploded:
+                                        self.kills += 1
+                                        collided_entity.check_destroy()
+                            else:
+                                destroy(collided_entity)
+                                if collided_entity.entity_type == EntityType.BASE:
+                                    self.game.show_game_over()
+                        if hasattr(collided_entity, 'is_tank') and not collided_entity.is_exploded:
+                            self.tanks_damage_dealt += pool.hit_damage
+                        else:
+                            self.other_damage_dealt += pool.hit_damage
+                            
+                        #destroy(bullet)
+                        self.ammunition.bullet_pool.release_bullet(bullet)
+                        #bullet.owner.bullets_on_screen -= 1
+
     def update(self):
+        self.move_bullet(time.dt)
         if self.game.over:
             return
         
@@ -174,14 +224,20 @@ class Tank(Entity):
             self.remove_counter += time.dt
             if self.remove_counter > self.remove_limit:
                 tmp_position = self.position
-                if self.entity_type is not EntityType.PLAYER_TANK:
-                    print(f"{self.name} has been destroyed")
+                if self.entity_type is not EntityType.PLAYER_TANK:                    
                     if self.entity_type == EntityType.BOSS:
                         self.boss_audio.stop()
-                    destroy(self)                      
+                    # Let bullets hit the target or go off the screen
+                    if len(self.ammunition.bullet_pool.active_bullets) > 0:
+                        self.visible = False
+                        self.collider = None
+                    else:
+                        self.ammunition.bullet_pool.destroy_bullets()
+                        destroy(self)
+                        randomize_drop(tmp_position)               
                 else:
                     self.respawn()
-                randomize_drop(tmp_position)
+                
 
     def __move(self, next_position):
         if self.game.is_position_on_screen(next_position):

@@ -20,8 +20,8 @@ class Player(Tank):
         self.pause_allowed = True
         self.landmine_drop_allowed = True
         self.move_audio = Audio("assets/audio/tank_move.ogg", volume=1, loop=True, autoplay=False)
-        
         self.prepare_stats()
+        self.ammunition.bullet_pool.max_bullets = 10
 
     def respawn(self):
         self.game.spawn(self)
@@ -91,14 +91,14 @@ class Player(Tank):
                 self.move_audio.play()
             self.move(direction, movement_distance)        
 
-        if buttons_state['shoot'] and self.can_shoot == True and self.bullets_on_screen < self.bullets_max:
-            self.ammunition.shoot_bullet(self, play_sound=True)
+        if buttons_state['shoot'] and self.can_shoot:
+            self.ammunition.shoot_bullet(play_sound=True)
             self.can_shoot = False
         elif not buttons_state['shoot']:
             self.can_shoot = True
 
         if buttons_state['drop'] and self.landmine_drop_allowed:
-            self.ammunition.deploy_landmine(self, play_sound=True)
+            self.ammunition.deploy_landmine(play_sound=True)
             self.landmine_drop_allowed = False
         elif not buttons_state['drop'] and not self.landmine_drop_allowed:
             self.landmine_drop_allowed = True
@@ -117,6 +117,10 @@ class Player(Tank):
             value = getattr(self, attr)
             stat_text_pair[1].text = f'{value}'
         self.landmine_stat.set_ammo_bars(self.ammunition.landmines_count)
+
+    @property
+    def bullets_on_screen(self):
+        return len(self.ammunition.bullet_pool.active_bullets)
 
     def prepare_stats(self):
         stat_items = {"player_id" : "Player", 

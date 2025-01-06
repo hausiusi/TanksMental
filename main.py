@@ -36,16 +36,6 @@ timer_counter = 0
 update_interval = 0.2
 is_game_over = False
 
-def get_collision_element(element, direction, distance):
-    """Gets the entity that was collided with passed entity"""
-    try:
-        ray = raycast(element.position, direction, ignore=[element], distance=distance)
-        if ray.hit:
-            return ray.entity
-    except Exception as ex:
-        pass
-    return None
-
 
 def update():
 
@@ -59,46 +49,15 @@ def update():
     
     if is_edit_mode:
         return  # Skip movement logic when in edit mode
-
-    timer_counter += time.dt
+    
+    dt = time.dt
+    timer_counter += dt
     if timer_counter > update_interval:
         refresh_stats()
         timer_counter = 0
 
-    for bullet in scene.entities:
-        if bullet.visible and hasattr(bullet, 'velocity'):
-            bullet.position += bullet.velocity * time.dt
-            # Destroy bullet if it goes off-screen
-            if not game.is_on_screen(bullet):                
-                destroy(bullet)
-                bullet.owner.bullets_on_screen -= 1
-                return
-            collided_entity = get_collision_element(bullet, bullet.velocity, 0.5)
-            if bullet.visible and collided_entity != None:
-                if hasattr(collided_entity, 'takes_hit'):
-                    # This if and break affect the performance - consider fixing it
-                    if (collided_entity.entity_type == bullet.owner.entity_type 
-                        or collided_entity.entity_type == EntityType.BOSS and bullet.owner.entity_type == EntityType.ENEMY_TANK
-                        or collided_entity.entity_type == EntityType.ENEMY_TANK and bullet.owner.entity_type == EntityType.BOSS):
-                        break
-                    if collided_entity.takes_hit:
-                        collided_entity.durability -= bullet.hit_damage
-                        if collided_entity.durability <= 0:
-                            if hasattr(collided_entity, 'is_tank'):
-                                    if not collided_entity.is_exploded:
-                                        bullet.owner.kills += 1
-                                        collided_entity.check_destroy()
-                            else:
-                                destroy(collided_entity)
-                                if collided_entity.entity_type == EntityType.BASE:
-                                    game.show_game_over()
-                        if hasattr(collided_entity, 'is_tank') and not collided_entity.is_exploded:
-                            bullet.owner.tanks_damage_dealt += bullet.hit_damage
-                        else:
-                            bullet.owner.other_damage_dealt += bullet.hit_damage
-                            
-                        destroy(bullet)
-                        bullet.owner.bullets_on_screen -= 1
+    if dt > 0.02:
+        print(f"The frame rate is low {1 / dt}")
 
 def input(key):
     global is_edit_mode
