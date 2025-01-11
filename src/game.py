@@ -1,10 +1,12 @@
 from ursina import *
+from typing import List
 from src.settings import Settings
 from src.levels import load_map, get_levels_count
 from src.enums import CollisionEffect, EntityType
 from src.npc import NpcSpawner
 from src.startmenu import StartMenu
 from src.player import Player
+from src.game_save import SaveManager
 
 class Game:
     def __init__(self):
@@ -15,7 +17,7 @@ class Game:
         window.exit_button.visible = False
 
         self.players = []
-        self.start_menu = StartMenu(all_tanks_selected_callback=self._init_game)
+        self.start_menu = StartMenu(self, start_game_callback=self._start_new_game, continue_game_callback=self._continue_game)
         self.player_positions = [
             Vec2(-2, self.settings.screen_bottom),
             Vec2(2, self.settings.screen_bottom),
@@ -89,7 +91,7 @@ class Game:
             self.stat_text_pairs[key] = (name_text, value_text)
             pos_y -= 0.02
     
-    def _init_game(self, controller_avatars: list):
+    def _start_new_game(self, controller_avatars: list):
         position_index = 0
         for controller_avatar in controller_avatars:
             controller = controller_avatar.controller
@@ -117,6 +119,18 @@ class Game:
             position_index += 1
             self.players.append(player)
 
+        self.start_menu.destroy_startmenu_elements()
+        self.create_tile_map()
+        self.npc_spawner.load_level_npcs(self.level_index)
+        self.npc_spawner.spawn_initial_npcs()
+
+    def _continue_game(self, players: List[Player], level):
+        for player in players:
+            player.initial_position = self.player_positions[player.player_id]
+            player.position = self.player_positions[player.player_id]
+            self.players.append(player)
+        
+        self.level_index = level
         self.start_menu.destroy_startmenu_elements()
         self.create_tile_map()
         self.npc_spawner.load_level_npcs(self.level_index)
@@ -152,6 +166,8 @@ class Game:
         self.over = True        
     
     def show_level_complete(self):
+        save_manager = SaveManager()
+        save_manager.save_game(self.players, self.level_index + 1, "gamesave.json")
         self.background = Entity(
         model='quad',
         texture='assets/images/black.png',

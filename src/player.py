@@ -21,7 +21,6 @@ class Player(Tank):
         self.landmine_drop_allowed = True
         self.move_audio = Audio("assets/audio/tank_move.ogg", volume=1, loop=True, autoplay=False)
         self.prepare_stats()
-        self.ammunition.bullet_pool.max_bullets = 10
 
     def respawn(self):
         self.game.spawn(self)

@@ -136,7 +136,7 @@ cython_debug/
 .vscode
 
 # Project specific directories
-results/
+saves/
 
 # Pycharm configuration files
 .idea/*

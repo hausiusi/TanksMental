@@ -74,7 +74,7 @@ npcs = [
                     'chosen_bullet' : 0,
                     'durability'    : 10,
                     'count'         : 5,
-                    'at_once'       : 5
+                    'at_once'       : 2
                 },
                 {
                     'texture'       : 'assets/images/tank0.png',
@@ -86,7 +86,7 @@ npcs = [
                     'chosen_bullet' : 0,
                     'durability'    : 20,
                     'count'         : 5,
-                    'at_once'       : 5
+                    'at_once'       : 2
                 },
                 {
                     'texture'       : 'assets/images/tank0.png',
@@ -110,7 +110,7 @@ npcs = [
                     'max_speed'     : 1.5,
                     'max_bullets'   : 1,
                     'chosen_bullet' : 1,
-                    'durability'    : 30,
+                    'durability'    : 25,
                     'count'         : 5,
                     'at_once'       : 5
                 },

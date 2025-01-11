@@ -150,7 +150,7 @@ class AmmoCatalog:
         self.bullet_pools.append(BulletPool(owner=owner, 
                                             hit_damage=2,
                                             bullet_speed=5,
-                                            pool_size=2,
+                                            pool_size=1,
                                             shoot_sound=self.shoot_sound1,
                                             bullet=bullet))
 

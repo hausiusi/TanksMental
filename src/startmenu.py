@@ -1,10 +1,9 @@
 from ursina import*
-if __name__ == '__main__':
-    from settings import Settings
-    from controller import PS4Controller, KeyboardController, BaseController
-else:
-    from src.settings import Settings
-    from src.controller import PS4Controller, KeyboardController, BaseController
+
+from src.game_save import SaveManager
+from src.settings import Settings
+from src.controller import PS4Controller, KeyboardController, BaseController
+from src.misc.utils import get_files_in_folder, json_load
 
 class StartMenuElement(Entity):
     def __init__(self, **kwargs):
@@ -90,26 +89,166 @@ class TankAvatar(Entity):
         self.controller_id = controller_id
         self.outline = Outline(self)
 
+class HomeMenuItems(Entity):
+    def __init__(self, controllers, **kwargs):
+        super().__init__(model='quad', color=color.gray, **kwargs)
+        self.controllers = controllers
+        self.element_switch_delay = 0.3
+        self.element_switch_timer = 0
+        self.selected_index = -1
+        self.selected_item = None
+        self.scroll_is_blocked = False
+
+    def select_element(self):
+        for menu_item in self.children:
+            if menu_item.menu_index == self.selected_index:
+                menu_item.color = color.black33
+                menu_item.is_selected = True
+                self.selected_item = menu_item
+            else:
+                menu_item.color = color.black
+                menu_item.is_selected = False
+
+    def update(self):
+        index_limit = len(self.children)
+        self.element_switch_timer += time.dt
+        if self.element_switch_timer > self.element_switch_delay:            
+            self.scroll_is_blocked = False
+            self.element_switch_timer = 0
+
+        scroll_requested = False
+        for controller in self.controllers:
+            buttons_state = controller.get_buttons_state(0)
+            if buttons_state['up']:
+                scroll_requested = True
+                if  not self.scroll_is_blocked:
+                    self.selected_index = (self.selected_index - 1) % index_limit
+            elif buttons_state['down']:
+                scroll_requested = True
+                if not self.scroll_is_blocked:
+                    self.selected_index = (self.selected_index + 1) % index_limit
+            elif buttons_state['shoot']:
+                if self.selected_item is not None:
+                    self.selected_item.enter_callback(self)
+            elif buttons_state['drop']:
+                if self.selected_item is not None:
+                    self.selected_item.exit_callback(self)
+
+        if not self.scroll_is_blocked:
+            self.select_element()
+            self.element_switch_timer = 0
+
+        self.scroll_is_blocked = scroll_requested
+
+class HomeMenuText(Entity):
+    def __init__(self, text, enter_callback, menu_index, exit_callback=None, **kwargs):
+        super().__init__(model='quad', **kwargs)
+        self.enter_callback = enter_callback
+        self.exit_callback = exit_callback
+        self.is_selected = False        
+        self.text_entity = Text(
+            parent=self,
+            text=text,
+            position=(-0.5, 0.1, -0.1),
+            color=color.red,
+            scale=(5, 10, 5)
+        )
+        self.menu_index = menu_index
+        print(f"Added text {text}")
+        print(f"Parent scale: {self.scale}")
+        print(f"Text entity scale: {self.text_entity.scale}")
+        
+
 class StartMenu:
-    def __init__(self, all_tanks_selected_callback=None):
+    def __init__(self, game, start_game_callback=None, continue_game_callback=None):
         self.colors = [
             color.white,
             color.gray,
             color.pink,
             color.green,
         ]
-        self.all_tanks_selected_callback = all_tanks_selected_callback
+        self.game = game
+        self.start_new_game_callback = start_game_callback
+        self.continue_game_callback = continue_game_callback
         self.settings = Settings()
         self.startmenu_elements = []
         self.tank_avatars = []
         self.controller_avatars = []
+        self.home_menu_selected_id = 0
         self._display_title()
-        self._display_tank_avatars()
         self.ps4controller = PS4Controller()
         self.keyboardcontroller = KeyboardController()
         self.keyboardcontroller.initialize_controller()
         self.ps4controller.initialize_controller()        
         self.controllers_count = len(self.ps4controller.controllers)
+        self._display_home_menu()
+
+    def _load_saved_game(self, sender):
+        if not getattr(getattr(sender, 'selected_item', None), 'file_path', None):
+            print("Error: no file path has been provided to load the game")
+            return
+        file_path = sender.selected_item.file_path
+        print(f"Loading the saved game {file_path}")
+        players, level = SaveManager().load_game(self.game, file_path, [self.ps4controller, self.keyboardcontroller])
+        self.continue_game_callback(players, level)
+
+    def _display_continue_game(self, sender):
+        self.destroy_startmenu_elements()
+        self._display_title()
+        print("Continue the saved game")
+        self.continue_game_holder = HomeMenuItems(
+            controllers=[self.keyboardcontroller, self.ps4controller],
+            scale=(5, 5)
+            )
+        
+        files = get_files_in_folder('saves/game')
+        for i, file in enumerate(files):
+            file_name, file_path = file
+            text_entity = HomeMenuText(text=file_name,                         
+                                       enter_callback=self._load_saved_game,
+                                       menu_index=i,
+                                       texture='assets/images/black.png',
+                                       parent=self.continue_game_holder,
+                                       position=(0, 0.38 - i * 0.25, -0.05),
+                                       scale=(0.9, 0.23),
+                                       file_path=file_path
+                                       )
+
+        self.startmenu_elements.append(self.continue_game_holder)
+
+    def _display_options(self, sender):
+        print("Change settings")
+
+    def _exit(self, sender):
+        exit()
+
+    def _display_home_menu(self):
+        menu_options = {
+            "Start Game" : self._display_setup_new_game, 
+            "Continue Game" : self._display_continue_game, 
+            "Options" : self._display_options,
+             "Exit" : self._exit}
+        
+        self.home_menu_holder = HomeMenuItems(
+            controllers=[self.keyboardcontroller, self.ps4controller],
+            scale=(5, 5)
+            )
+        
+        for i, (text, callback) in enumerate(menu_options.items()):
+            text_entity = HomeMenuText(text=text,                         
+                                       enter_callback=callback,
+                                       menu_index=i,
+                                       texture='assets/images/black.png',
+                                       parent=self.home_menu_holder,
+                                       position=(0, 0.38 - i * 0.25, -0.05),
+                                       scale=(0.9, 0.23),
+                                       )
+        self.startmenu_elements.append(self.home_menu_holder)
+
+
+    def _display_setup_new_game(self, sender):
+        self.destroy_startmenu_elements()
+        self._display_tank_avatars()
         self._display_controller_avatars()
 
     def find_next_tank_avatar(self, parent_id):
@@ -171,8 +310,8 @@ class StartMenu:
         
         if all_are_selected:
             print('All tanks are selected')
-            if self.all_tanks_selected_callback:
-                self.all_tanks_selected_callback(
+            if self.start_new_game_callback:
+                self.start_new_game_callback(
                     [_controller_avatar for _controller_avatar in self.controller_avatars if _controller_avatar.outline.visible])
 
     def on_controller_deselecting(self, controller_avatar):
@@ -254,10 +393,3 @@ class StartMenu:
             return [(start + (index - i) % length) for i in range(length)]
         else:
             return [(start + (i + index) % length) for i in range(length)]
-
-
-if __name__ == '__main__':
-    app = Ursina()
-    EditorCamera(enabled=True)
-    start_menu = StartMenu()
-    app.run()
