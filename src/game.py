@@ -95,12 +95,13 @@ class Game:
         position_index = 0
         for controller_avatar in controller_avatars:
             controller = controller_avatar.controller
+            character = controller_avatar.parent.character
             player = Player(
                 game=self,
                 controller=controller,
                 player_id=position_index,
                 model='quad',
-                texture=controller_avatar.parent.texture,
+                texture=character.initial_texture,
                 position=self.player_positions[position_index],
                 z=0,
                 scale=(0.8, 1),
@@ -109,9 +110,9 @@ class Game:
                 rigidbody=True,
                 is_tank=True,
                 can_shoot=True,
-                max_speed=2,
+                max_speed=character.max_speed,
                 takes_hit=True,
-                durability=100,
+                durability=character.durability,
                 is_exploded=False,
                 remove_counter=0,
                 remove_limit=3,

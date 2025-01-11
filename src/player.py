@@ -25,7 +25,7 @@ class Player(Tank):
     def respawn(self):
         self.game.spawn(self)
         self.is_exploded = False
-        self.texture = "assets/images/player_tank.png"
+        self.texture = self.initial_texture
         self.remove_counter = 0
         self.durability = self.health_bar.max_health
         self.rotation_z = 0 # Respawn pointing up

@@ -140,3 +140,6 @@ saves/
 
 # Pycharm configuration files
 .idea/*
+
+# Temporary file for testing
+tmp.py

@@ -15,3 +15,4 @@ from src.startmenu import StartMenu
 from src.ammobar import AmmoBar
 from src.spranimator import SpriteAnimator
 from src.game_save import SaveManager
+from src.character import *

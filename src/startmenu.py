@@ -4,6 +4,7 @@ from src.game_save import SaveManager
 from src.settings import Settings
 from src.controller import PS4Controller, KeyboardController, BaseController
 from src.misc.utils import get_files_in_folder, json_load
+from src.character import IronGuard, TrailBlazer, PlayerCharacter
 
 class StartMenuElement(Entity):
     def __init__(self, **kwargs):
@@ -82,12 +83,13 @@ class KeyboardAvatar(BaseControllerAvatar):
             **kwargs)
 
 class TankAvatar(Entity):
-    def __init__(self, controller_id = -1, **kwargs):
+    def __init__(self, character:PlayerCharacter, controller_id = -1,  **kwargs):
         super().__init__(
-            texture='../assets/images/player_tank.png',
+            texture=character.initial_texture,
             **kwargs)
         self.controller_id = controller_id
         self.outline = Outline(self)
+        self.character = character
 
 class HomeMenuItems(Entity):
     def __init__(self, controllers, **kwargs):
@@ -359,21 +361,27 @@ class StartMenu:
         self.controller_avatars.append(keyboard)
 
     def _display_tank_avatars(self):
+        characters = [
+            IronGuard,
+            TrailBlazer]
         avatar_width = 1.7
-        tanks_count = len(self.colors)
+        tanks_count = len(self.colors) * len(characters)
         distance = avatar_width + 0.5
         avatars_span = tanks_count * distance
         start_x = -avatars_span / 2 + avatar_width / 2
         
-        for i in range(tanks_count):
-            self.tank_avatars.append(TankAvatar(
-                model='quad',
-                id = i,
-                color=self.colors[i],
-                scale=(avatar_width, avatar_width),
-                position=(start_x + i * distance, 2.5))
-            )
-            self.startmenu_elements.append(self.tank_avatars[i])
+        for character_index, character in enumerate(characters):
+            for i in range(len(self.colors)):
+                avatar_id = (len(self.colors) * character_index) + i
+                tank_avatar = TankAvatar(
+                    character=character,
+                    model='quad',
+                    id = avatar_id,
+                    color=self.colors[i],
+                    scale=(avatar_width, avatar_width),
+                    position=(start_x + avatar_id * distance, 2.5))
+                self.tank_avatars.append(tank_avatar)
+                self.startmenu_elements.append(tank_avatar)
     
     def _display_title(self):
         self.title = Text(
