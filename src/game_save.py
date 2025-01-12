@@ -35,6 +35,7 @@ class SaveManager:
                 "player_id": player.player_id,
                 "max_speed": player.max_speed,
                 "durability": player.durability,
+                "max_durability" : player.max_durability,
                 "initial_texture": player.initial_texture,
                 "kills" : player.kills,
                 "tanks_damage" : player.tanks_damage_dealt,
@@ -57,6 +58,7 @@ class SaveManager:
             controller = controllers[i] if len(controllers) > i else None
             player = Player(
                     game=game,
+                    max_durability=player_props['max_durability'],
                     controller=controller,
                     player_id=player_props['player_id'],
                     model='quad',
@@ -70,11 +72,11 @@ class SaveManager:
                     can_shoot=True,
                     max_speed=player_props['max_speed'],
                     takes_hit=True,
-                    durability=player_props['durability'],
                     is_exploded=False,
                     remove_counter=0,
                     remove_limit=3,
                 )
+            player.durability = player_props['durability']
             player.kills = player_props['kills']
             player.tanks_damage_dealt = player_props['tanks_damage']
             player.other_damage_dealt = player_props['other_damage']

@@ -34,7 +34,7 @@ class EnemyTank(Tank):
             and not self.is_exploded):                
             self.ammunition.shoot_bullet(False)
             self.bullet_interval_counter = 0
-            self.health_bar.update_health(self.durability)
+            self.health_bar.update_health(self.health)
 
         super().update()
 
@@ -105,6 +105,7 @@ class NpcSpawner:
                 name=f'EnemyTank{self.spawned_count}',
                 entity_type=self.npc_pool['entity_type'],
                 game=self.game,
+                max_durability=self.npc_pool['max_durability'],
                 model='quad',
                 texture=self.npc_pool['texture'],
                 visible=False,
@@ -114,7 +115,6 @@ class NpcSpawner:
                 collider='box',
                 rigidbody=True,
                 takes_hit=True,
-                durability=self.npc_pool['durability'],
                 is_tank=True,
                 can_shoot=True,
                 max_speed=self.npc_pool['max_speed'],

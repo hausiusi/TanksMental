@@ -27,7 +27,7 @@ class Player(Tank):
         self.is_exploded = False
         self.texture = self.initial_texture
         self.remove_counter = 0
-        self.durability = self.health_bar.max_health
+        self.durability = self.max_durability
         self.rotation_z = 0 # Respawn pointing up
 
     def toggle_pause(self):
@@ -61,7 +61,9 @@ class Player(Tank):
                 self.game.npc_spawner.load_level_npcs(self.game.level_index)
                 self.game.npc_spawner.spawn_initial_npcs()
                 for player in self.game.players:
+                    tmp = player.health
                     player.respawn()
+                    player.durability = tmp
 
                 self.game.level_complete = False
                 

@@ -98,6 +98,7 @@ class Game:
             character = controller_avatar.parent.character
             player = Player(
                 game=self,
+                max_durability=character.max_durability,
                 controller=controller,
                 player_id=position_index,
                 model='quad',
@@ -112,7 +113,6 @@ class Game:
                 can_shoot=True,
                 max_speed=character.max_speed,
                 takes_hit=True,
-                durability=character.durability,
                 is_exploded=False,
                 remove_counter=0,
                 remove_limit=3,
@@ -252,7 +252,6 @@ class Game:
 
                     durability = 100
                     takes_hit = False
-                    resistance = 0
                     damaging = 0
                     collision_effect = CollisionEffect.NO_EFFECT
                     effect_strength = 0

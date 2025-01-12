@@ -72,7 +72,7 @@ npcs = [
                     'max_speed'     : 1,
                     'max_bullets'   : 1,
                     'chosen_bullet' : 0,
-                    'durability'    : 10,
+                    'max_durability': 10,
                     'count'         : 5,
                     'at_once'       : 2
                 },
@@ -84,7 +84,7 @@ npcs = [
                     'max_speed'     : 1.5,
                     'max_bullets'   : 1,
                     'chosen_bullet' : 0,
-                    'durability'    : 20,
+                    'max_durability': 20,
                     'count'         : 5,
                     'at_once'       : 2
                 },
@@ -96,7 +96,7 @@ npcs = [
                     'max_speed'     : 2,
                     'max_bullets'   : 3,
                     'chosen_bullet' : 0,
-                    'durability'    : 50,
+                    'max_durability': 50,
                     'count'         : 1,
                     'at_once'       : 1
                 }
@@ -110,7 +110,7 @@ npcs = [
                     'max_speed'     : 1.5,
                     'max_bullets'   : 1,
                     'chosen_bullet' : 1,
-                    'durability'    : 25,
+                    'max_durability': 25,
                     'count'         : 5,
                     'at_once'       : 5
                 },
@@ -122,7 +122,7 @@ npcs = [
                     'max_speed'     : 2,
                     'max_bullets'   : 2,
                     'chosen_bullet' : 0,
-                    'durability'    : 30,
+                    'max_durability': 30,
                     'count'         : 10,
                     'at_once'       : 5
                 },
@@ -134,7 +134,7 @@ npcs = [
                     'max_speed'     : 3,
                     'max_bullets'   : 3,
                     'chosen_bullet' : 1,
-                    'durability'    : 100,
+                    'max_durability': 100,
                     'count'         : 1,
                     'at_once'       : 1
                 }
@@ -148,7 +148,7 @@ npcs = [
                     'max_speed'     : 2,
                     'max_bullets'   : 2,
                     'chosen_bullet' : 1,
-                    'durability'    : 50,
+                    'max_durability': 50,
                     'count'         : 10,
                     'at_once'       : 5
                 },
@@ -160,7 +160,7 @@ npcs = [
                     'max_speed'     : 2,
                     'max_bullets'   : 4,
                     'chosen_bullet' : 0,
-                    'durability'    : 60,
+                    'max_durability': 60,
                     'count'         : 10,
                     'at_once'       : 5
                 },
@@ -172,7 +172,7 @@ npcs = [
                     'max_speed'     : 4,
                     'max_bullets'   : 5,
                     'chosen_bullet' : 1,
-                    'durability'    : 200,
+                    'max_durability': 200,
                     'count'         : 1,
                     'at_once'       : 1
                 }
@@ -186,7 +186,7 @@ npcs = [
                     'max_speed'     : 2,
                     'max_bullets'   : 4,
                     'chosen_bullet' : 1,
-                    'durability'    : 100,
+                    'max_durability': 100,
                     'count'         : 15,
                     'at_once'       : 5
                 },
@@ -198,7 +198,7 @@ npcs = [
                     'max_speed'     : 3,
                     'max_bullets'   : 4,
                     'chosen_bullet' : 0,
-                    'durability'    : 100,
+                    'max_durability': 100,
                     'count'         : 10,
                     'at_once'       : 5
                 },
@@ -210,7 +210,7 @@ npcs = [
                     'max_speed'     : 6,
                     'max_bullets'   : 8,
                     'chosen_bullet' : 1,
-                    'durability'    : 300,
+                    'max_durability': 300,
                     'count'         : 2,
                     'at_once'       : 2
                 }

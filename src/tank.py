@@ -7,11 +7,13 @@ from src.widgetry.drops import randomize_drop
 from src.widgetry.effects import WetEffect, FireEffect
 
 class Tank(Entity):
-    def __init__(self, game, **kwargs):
+    def __init__(self, game, max_durability, **kwargs):
         super().__init__(**kwargs)
         self.game = game
+        self.max_durability = max_durability
+        self.durability = max_durability
         self.healthy_texture = self.texture
-        self.health_bar = HealthBar(max_health=self.durability, current_health=self.durability, parent_entity=self)
+        self.health_bar = HealthBar(max_health=self.max_durability, current_health=self.durability, parent_entity=self)
         self.kills = 0
         self.tanks_damage_dealt = 0
         self.other_damage_dealt = 0
