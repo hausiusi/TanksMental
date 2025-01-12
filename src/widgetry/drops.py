@@ -1,6 +1,6 @@
 from ursina import *
 from src.enums import EntityType, DropEffect
-from src.timer import Timer
+from src.misc.timer import Timer
 import random
 
 class SupplyDrop(Entity):

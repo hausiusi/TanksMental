@@ -7,10 +7,10 @@ from src.misc.utils import get_files_in_folder, json_load
 from src.character import IronGuard, TrailBlazer, PlayerCharacter
 
 class StartMenuElement(Entity):
-    def __init__(self, **kwargs):
+    def __init__(self, scale=(0.5, 0.5), **kwargs):
         super().__init__(**kwargs)
         self.model = 'quad'
-        self.scale = (0.5, 0.5)
+        self.scale = scale
         self.color = color.white
         self.collider = 'box'
         self.z = -1

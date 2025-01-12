@@ -1,8 +1,8 @@
 from ursina import *
-from src.effects import BulletEffect
+from src.widgetry.effects import BulletEffect
 from src.enums import EntityType, CollisionEffect
-from src.timer import Timer
-from src.spranimator import SpriteAnimator
+from src.misc.timer import Timer
+from src.misc.spranimator import SpriteAnimator
 from PIL import Image
 
 class Landmine(Entity):

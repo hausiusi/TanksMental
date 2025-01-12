@@ -1,10 +1,10 @@
 from ursina import *
-from src.healthbar import HealthBar
+from src.widgetry.healthbar import HealthBar
 from src.enums import CollisionEffect, EntityType, DropEffect
-from src.timer import Timer
+from src.misc.timer import Timer
 from src.ammunition import AmmoCatalog
-from src.drops import randomize_drop
-from src.effects import WetEffect, FireEffect
+from src.widgetry.drops import randomize_drop
+from src.widgetry.effects import WetEffect, FireEffect
 
 class Tank(Entity):
     def __init__(self, game, **kwargs):
