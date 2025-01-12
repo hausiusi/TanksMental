@@ -13,6 +13,10 @@ class BaseController(ABC):
     def get_buttons_state(self, player_index: int = 0):
         pass
 
+    @abstractmethod
+    def controllers_count(self):
+        pass
+
 
 class PS4Controller(BaseController):
     def initialize_controller(self):
@@ -36,6 +40,10 @@ class PS4Controller(BaseController):
                 "axis": axis_state,
                 "hat": hat_state
             })
+
+    @property
+    def controllers_count(self):
+        return len(self.controllers)
 
     def refresh_buttons_state(self):
         for event in pygame.event.get():
@@ -76,6 +84,10 @@ class PS4Controller(BaseController):
 class KeyboardController(BaseController):
     def initialize_controller(self):
         pass
+
+    @property
+    def controllers_count(self):
+        return 1 # Keyboard controller is always 1
 
     def get_buttons_state(self, player_index: int = 0):
         ret = {}

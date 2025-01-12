@@ -120,21 +120,22 @@ class HomeMenuItems(Entity):
 
         scroll_requested = False
         for controller in self.controllers:
-            buttons_state = controller.get_buttons_state(0)
-            if buttons_state['up']:
-                scroll_requested = True
-                if  not self.scroll_is_blocked:
-                    self.selected_index = (self.selected_index - 1) % index_limit
-            elif buttons_state['down']:
-                scroll_requested = True
-                if not self.scroll_is_blocked:
-                    self.selected_index = (self.selected_index + 1) % index_limit
-            elif buttons_state['shoot']:
-                if self.selected_item is not None:
-                    self.selected_item.enter_callback(self)
-            elif buttons_state['drop']:
-                if self.selected_item is not None:
-                    self.selected_item.exit_callback(self)
+            for i in range(controller.controllers_count):
+                buttons_state = controller.get_buttons_state(i)
+                if buttons_state['up']:
+                    scroll_requested = True
+                    if  not self.scroll_is_blocked:
+                        self.selected_index = (self.selected_index - 1) % index_limit
+                elif buttons_state['down']:
+                    scroll_requested = True
+                    if not self.scroll_is_blocked:
+                        self.selected_index = (self.selected_index + 1) % index_limit
+                elif buttons_state['shoot']:
+                    if self.selected_item is not None:
+                        self.selected_item.enter_callback(self)
+                elif buttons_state['drop']:
+                    if self.selected_item is not None:
+                        self.selected_item.exit_callback(self)
 
         if not self.scroll_is_blocked:
             self.select_element()
