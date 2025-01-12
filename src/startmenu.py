@@ -154,7 +154,7 @@ class HomeMenuText(Entity):
             text=text,
             position=(-0.5, 0.1, -0.1),
             color=color.red,
-            scale=(5, 10, 5)
+            scale=(3.8, 10, 0)
         )
         self.menu_index = menu_index
         print(f"Added text {text}")
@@ -193,7 +193,7 @@ class StartMenu:
         file_path = sender.selected_item.file_path
         print(f"Loading the saved game {file_path}")
         players, level = SaveManager().load_game(self.game, file_path, [self.ps4controller, self.keyboardcontroller])
-        self.continue_game_callback(players, level)
+        self.continue_game_callback(os.path.basename(file_path), players, level)
 
     def _display_continue_game(self, sender):
         self.destroy_startmenu_elements()

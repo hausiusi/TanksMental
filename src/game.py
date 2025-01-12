@@ -7,6 +7,7 @@ from src.npc import NpcSpawner
 from src.startmenu import StartMenu
 from src.player import Player
 from src.game_save import SaveManager
+from datetime import datetime
 
 class Game:
     def __init__(self):
@@ -38,6 +39,7 @@ class Game:
         self.tile_size = 1
         self.terrain_entities = []
         self.active_bullets = []
+        self.save_file_path = ""
 
         self.directions = {
             # Multiple variants for the same directions
@@ -125,7 +127,8 @@ class Game:
         self.npc_spawner.load_level_npcs(self.level_index)
         self.npc_spawner.spawn_initial_npcs()
 
-    def _continue_game(self, players: List[Player], level):
+    def _continue_game(self, save_file_path, players: List[Player], level):
+        self.save_file_path = save_file_path
         for player in players:
             player.initial_position = self.player_positions[player.player_id]
             player.position = self.player_positions[player.player_id]
@@ -168,7 +171,10 @@ class Game:
     
     def show_level_complete(self):
         save_manager = SaveManager()
-        save_manager.save_game(self.players, self.level_index + 1, "gamesave.json")
+        if self.save_file_path == "":
+            date_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+            self.save_file_path = f"{date_str}.json"
+            save_manager.save_game(self.players, self.level_index + 1, self.save_file_path)
         self.background = Entity(
         model='quad',
         texture='assets/images/black.png',
@@ -224,7 +230,6 @@ class Game:
         z=-0.04,       
         position=(0, 0)             
         )
-
 
         Start = Text(
         text='Press shoot to start the game',
