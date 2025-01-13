@@ -6,10 +6,11 @@ from src.enums import EntityType
 from src.widgetry.ammobar import AmmoBar
 
 class Player(Tank):
-    def __init__(self, game, controller: BaseController, player_id: int, **kwargs):
+    def __init__(self, game, controller: BaseController, controller_id, player_id: int, **kwargs):
         super().__init__(game, entity_type=EntityType.PLAYER_TANK, **kwargs)
         self.game = game
         self.settings = game.settings
+        self.controller_id = controller_id
         self.controller = controller
         self.player_id = player_id        
         self.initial_position = self.position
@@ -36,8 +37,9 @@ class Player(Tank):
     def update(self):
         if self.game.over:
             return
-        
-        buttons_state = self.controller.get_buttons_state(self.player_id)
+        if self.controller.controllers_count <= self.controller_id:
+            return # There is no controller connected for this player
+        buttons_state = self.controller.get_buttons_state(self.controller_id)
         if buttons_state['pause'] and self.pause_allowed:
             self.toggle_pause()
             self.pause_allowed = False

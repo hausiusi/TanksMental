@@ -7,6 +7,7 @@ from src.npc import NpcSpawner
 from src.startmenu import StartMenu
 from src.player import Player
 from src.game_save import SaveManager
+from src.controller import PS4Controller
 from datetime import datetime
 
 class Game:
@@ -95,6 +96,7 @@ class Game:
     
     def _start_new_game(self, controller_avatars: list):
         position_index = 0
+        controller_id = 0
         for controller_avatar in controller_avatars:
             controller = controller_avatar.controller
             character = controller_avatar.parent.character
@@ -102,6 +104,7 @@ class Game:
                 game=self,
                 max_durability=character.max_durability,
                 controller=controller,
+                controller_id = controller_id,
                 player_id=position_index,
                 model='quad',
                 texture=character.initial_texture,
@@ -119,6 +122,9 @@ class Game:
                 remove_counter=0,
                 remove_limit=3,
             )
+            if isinstance(controller, PS4Controller):
+                # Increasing controller ID only for the joysticks. The keyboard doesn't require the index
+                controller_id += 1
             position_index += 1
             self.players.append(player)
 

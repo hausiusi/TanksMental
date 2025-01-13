@@ -3,6 +3,7 @@ from src.player import Player
 from src.ammunition import AmmoCatalog, BulletPool
 from typing import List, Optional
 from src.misc.utils import json_load, json_save
+from src.controller import PS4Controller
 
 class SaveManager:
     def __init__(self):
@@ -53,13 +54,25 @@ class SaveManager:
         """Returns players with their state and the level that they reached"""
         data = json_load(file_path=save)
 
+        def get_player_controller_and_index(requested_index):
+            cumulative_index = 0
+            for controller in controllers:
+                tmp = cumulative_index
+                cumulative_index += controller.controllers_count
+                if cumulative_index > requested_index:
+                    # Calculate the local index within this controller
+                    local_index = requested_index - tmp
+                    return controller, local_index
+            return None
+
         players = []
         for i, player_props in enumerate(data['players']):
-            controller = controllers[i] if len(controllers) > i else None
+            controller, controller_id = get_player_controller_and_index(i)
             player = Player(
                     game=game,
                     max_durability=player_props['max_durability'],
                     controller=controller,
+                    controller_id=controller_id,
                     player_id=player_props['player_id'],
                     model='quad',
                     texture=player_props['initial_texture'],
@@ -76,6 +89,7 @@ class SaveManager:
                     remove_counter=0,
                     remove_limit=3,
                 )
+            
             player.durability = player_props['durability']
             player.kills = player_props['kills']
             player.tanks_damage_dealt = player_props['tanks_damage']

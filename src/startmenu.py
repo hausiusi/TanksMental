@@ -179,8 +179,8 @@ class StartMenu:
         self.controller_avatars = []
         self.home_menu_selected_id = 0
         self._display_title()
-        self.ps4controller = PS4Controller()
         self.keyboardcontroller = KeyboardController()
+        self.ps4controller = PS4Controller()
         self.keyboardcontroller.initialize_controller()
         self.ps4controller.initialize_controller()        
         self.controllers_count = len(self.ps4controller.controllers)
@@ -192,7 +192,7 @@ class StartMenu:
             return
         file_path = sender.selected_item.file_path
         print(f"Loading the saved game {file_path}")
-        players, level = SaveManager().load_game(self.game, file_path, [self.ps4controller, self.keyboardcontroller])
+        players, level = SaveManager().load_game(self.game, file_path, [self.keyboardcontroller, self.ps4controller])
         self.continue_game_callback(os.path.basename(file_path), players, level)
 
     def _display_continue_game(self, sender):
@@ -332,12 +332,24 @@ class StartMenu:
         avatar_width = 1.2
         distance = avatar_width + 0.5
         avatar_span = (1 + self.controllers_count) * distance 
-        start_x = -avatar_span / 2 + avatar_width / 2        
-        for i in range(self.controllers_count):
+        start_x = -avatar_span / 2 + avatar_width / 2
+        keyboard = KeyboardAvatar(
+            scale=(avatar_width + 0.2, avatar_width + 0.2),
+            id = 0, # The keyboard is the first controller always
+            color = color.white,
+            controller = self.keyboardcontroller,
+            on_controller_moving = self.on_controller_moving,
+            on_controller_deselecting = self.on_controller_deselecting,
+            on_controller_selecting = self.on_controller_selecting,
+            position = (start_x, -1))
+        self.startmenu_elements.append(keyboard)
+        self.controller_avatars.append(keyboard)
+        # Starting joystick controller from 1 as the first is the keyboard controller        
+        for i in range(1, self.controllers_count + 1):
             controller = ControllerAvatar(
                 scale=(avatar_width + 0.2, avatar_width + 0.2),
-                id = i,
-                color = self.colors[i],
+                id = i-1,
+                color = self.colors[i-1],
                 controller = self.ps4controller,
                 on_controller_moving = self.on_controller_moving,
                 on_controller_deselecting = self.on_controller_deselecting,
@@ -348,18 +360,9 @@ class StartMenu:
             self.controller_avatars.append(controller)
 
         pos_x = start_x + self.controllers_count * distance
-        keyboard = KeyboardAvatar(
-            scale=(avatar_width + 0.2, avatar_width + 0.2),
-            id = self.controllers_count, # The keyboard is the last controller always
-            color = color.white,
-            controller = self.keyboardcontroller,
-            on_controller_moving = self.on_controller_moving,
-            on_controller_deselecting = self.on_controller_deselecting,
-            on_controller_selecting = self.on_controller_selecting,
-            position = (pos_x, -1))
+        
         keyboard.outline.visible = False
-        self.startmenu_elements.append(keyboard)
-        self.controller_avatars.append(keyboard)
+        
 
     def _display_tank_avatars(self):
         characters = [
