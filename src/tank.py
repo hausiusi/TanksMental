@@ -220,7 +220,6 @@ class Tank(Entity):
         self.burn_damage_timer.update()
         self.wet_damage_timer.update()
         self.slow_down_timer.update()
-        self.ammunition.landmine_activation_timer.update()
 
         if self.is_exploded:
             self.remove_counter += time.dt

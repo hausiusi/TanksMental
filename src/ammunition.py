@@ -4,22 +4,22 @@ from src.enums import EntityType, CollisionEffect
 from src.misc.timer import Timer
 from src.misc.spranimator import SpriteAnimator
 from PIL import Image
+from abc import ABC, abstractmethod
 
 class Landmine(Entity):
     def __init__(self, owner, activation_sound, explosion_sound, explosion_animation : SpriteAnimator, **kwargs):
         super().__init__(
             model='quad', 
-            texture='assets/images/landmine.png', 
-            entity_type=EntityType.LANDMINE,
-            collider='box',
-            collision_effect=CollisionEffect.NO_EFFECT,
+            texture='assets/images/landmine.png',            
+            collider='box',            
             color=color.white, 
             scale=(0.3, 0.3), 
-            z=0, 
-            visible=True, 
-            effect_strength=50,
+            z=0,             
             **kwargs
             )
+        self.effect_strength=50
+        self.entity_type=EntityType.LANDMINE
+        self.collision_effect=CollisionEffect.NO_EFFECT
         self.explosion_animation = explosion_animation
         self.activation_sound = activation_sound
         self.explosion_sound = explosion_sound
@@ -105,19 +105,70 @@ class BulletPool:
             destroy(bullet)
         self.active_bullets.clear()
 
+class BaseDeployable(ABC):
+    '''Contains methods and attributes to help with deploying'''
+    @abstractmethod
+    def __init__(self, owner:Entity, max_size:int):
+        pass
+
+    @abstractmethod
+    def add(self, item):
+        pass
+
+    @abstractmethod
+    def deploy(self):
+        pass
+
+class Deployable(BaseDeployable):
+    def __init__(self, owner:Entity, max_size:int, deploy_method, deploy_sound:Audio):
+        self.max_size = max_size
+        self.items_count = 0
+        self.owner = owner
+        self.deploy_method = deploy_method
+        self.deploy_sound = deploy_sound
+
+    def add(self):
+        if self.items_count >= self.max_size:
+            return
+        self.items_count += 1
+
+    def deploy(self):
+        if self.items_count <= 0:
+            return
+        self.items_count -= 1
+        deployed_object = self.deploy_method()
+        self.deploy_sound.play()
+        return deployed_object
+
+class LandmineDeployer(Deployable):
+    def __init__(self, owner:Entity, max_size:int):
+        self.owner = owner
+        self.landmine_deploy_sound = Audio('assets/audio/landmine_drop.ogg', autoplay=False, volume=1.0)
+        self.landmine_activation_sound = Audio('assets/audio/landmine_activation.ogg', autoplay=False, volume=0.2)
+        self.landmine_explosion_sound = Audio('assets/audio/landmine_explosion.ogg', autoplay=False, volume=1.0)
+        self.landmine_explosion_animation = SpriteAnimator('assets/animations/landmine_explosion', delay=0.04)
+        def deploy_object():
+            return Landmine(owner=self.owner, 
+                            activation_sound=self.landmine_activation_sound,                             
+                            explosion_sound=self.landmine_explosion_sound, 
+                            explosion_animation=self.landmine_explosion_animation, visible=True)
+        super().__init__(owner=owner, max_size=max_size, deploy_method=deploy_object, deploy_sound=self.landmine_deploy_sound)
+
+    def deploy(self):
+        if self.items_count <= 0:
+            return
+        
+        deployed_object:Landmine = super().deploy()
+        deployed_object.activate()
+
+
 class AmmoCatalog:
     def __init__(self, owner:Entity):
         self.owner = owner
         self.game = owner.game
         self.shoot_sound0 = Audio("assets/audio/shoot0.wav", autoplay=False, volume=1.0)
         self.shoot_sound1 = Audio("assets/audio/shoot1.wav", autoplay=False, volume=1.0)
-        self.landmine_deploy_sound = Audio('assets/audio/landmine_drop.ogg', autoplay=False, volume=1.0)
-        self.landmine_activation_sound = Audio('assets/audio/landmine_activation.ogg', autoplay=False, volume=0.2)
-        self.landmine_explosion_sound = Audio('assets/audio/landmine_explosion.ogg', autoplay=False, volume=1.0)
-
-        self.landmine_explosion_animation = SpriteAnimator('assets/animations/landmine_explosion', delay=0.04)
-        self.landmines_count = 0
-        self.landmine_activation_timer = Timer(3, 1, lambda _: None, lambda: None)  
+        self.landmine_deployer = LandmineDeployer(owner=owner, max_size=10)
 
         texture_bullet0 = load_texture('assets/images/bullet0.png')
         texture_bullet1 = load_texture('assets/images/bullet1.png')
@@ -158,6 +209,10 @@ class AmmoCatalog:
         self.bullet_effect = None
         self.choose_bullet_pool(0)
 
+    @property
+    def landmines_count(self):
+        return self.landmine_deployer.items_count
+
     def choose_bullet_pool(self, bullet_pool_index):
         self.bullet_pool : BulletPool = self.bullet_pools[bullet_pool_index]
         self.chosen_bullet_index = bullet_pool_index
@@ -190,24 +245,11 @@ class AmmoCatalog:
             self.bullet_pool.shoot_sound.play()
 
     def add_landmine(self, owner:Entity):
-        self.landmines_count += 1
+        self.landmine_deployer.add()
         # add landmine effect to owner
 
-    def subtract_landmine(self, owner:Entity):
-        self.landmines_count -= 1
-        if self.landmines_count <= 0:
-            self.landmines_count = 0
-            # remove landmine effect from owner
-
     def deploy_landmine(self, play_sound=False):
-        if self.landmines_count == 0:
-            return
-        
-        self.subtract_landmine(self.owner)
-        landmine = Landmine(owner=self.owner, 
-                            activation_sound=self.landmine_activation_sound,                             
-                            explosion_sound=self.landmine_explosion_sound, 
-                            explosion_animation=self.landmine_explosion_animation)
-        if play_sound:
-            self.landmine_deploy_sound.play()
-        landmine.activate()
+        self.landmine_deployer.deploy()
+
+    def add_block(self, owner:Entity):
+        pass
