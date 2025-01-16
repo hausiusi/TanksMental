@@ -48,7 +48,7 @@ class Landmine(Entity):
 
 class BuildingBlock(Entity):
     def __init__(self, owner:Entity, **kwargs):
-        self.tile_size = 1
+        self.tile_size = owner.game.settings.tile_size
         self.owner = owner
         super().__init__(name="building_block",
                          model='quad',
@@ -196,9 +196,17 @@ class BuildingBlockDeployer(Deployable):
     
         deployed_object:BuildingBlock = super().deploy()
 
-        offset_x = math.sin(math.radians(self.owner.rotation_z)) * self.owner.scale_x * 1.2
-        offset_y = math.cos(math.radians(self.owner.rotation_z)) * self.owner.scale_y * 1.2
-        deployed_object.position = self.owner.position + Vec3(offset_x, offset_y, 0)
+        offset_x = math.sin(math.radians(self.owner.rotation_z)) * self.owner.scale_x * 1.5
+        offset_y = math.cos(math.radians(self.owner.rotation_z)) * self.owner.scale_y * 1.5
+        calculated_position = self.owner.position + Vec3(offset_x, offset_y, 0)
+
+        # Snap the position to the nearest tile
+        tile_size = deployed_object.tile_size
+        snapped_x = round(calculated_position.x / tile_size) * tile_size
+        snapped_y = round(calculated_position.y / tile_size) * tile_size
+        snapped_position = Vec3(snapped_x, snapped_y, calculated_position.z)
+
+        deployed_object.position = snapped_position
 
 class Deployables:
     def __init__(self, owner:Entity):

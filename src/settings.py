@@ -26,3 +26,6 @@ class Settings:
         
         # Player stats
         self.player_icon_scale = 0.4
+
+        # Objects
+        self.tile_size = 1

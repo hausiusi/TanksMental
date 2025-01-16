@@ -37,7 +37,7 @@ class Game:
         self.no_barrier_entities = []
         self.over = False
         self.level_complete = False
-        self.tile_size = 1
+        self.tile_size = self.settings.tile_size
         self.terrain_entities = []
         self.active_bullets = []
         self.save_file_path = ""
