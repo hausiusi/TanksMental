@@ -23,26 +23,31 @@ class SupplyDrop(Entity):
 
 class GunDrop(SupplyDrop):
     def __init__(self, **kwargs):
-        super().__init__(color=color.white, texture="assets/images/gun.png", drop_effect=DropEffect.MISSILE_DAMAGE_INCREASE, **kwargs)
+        super().__init__(color=color.white50, texture="assets/images/gun.png", drop_effect=DropEffect.MISSILE_DAMAGE_INCREASE, **kwargs)
 
 class FastBulletDrop(SupplyDrop):
     def __init__(self, **kwargs):
-        super().__init__(color=color.white, texture="assets/images/fast_bullet.png", drop_effect=DropEffect.MISSILE_SPEED_INCREASE, **kwargs)
+        super().__init__(color=color.white50, texture="assets/images/fast_bullet.png", drop_effect=DropEffect.MISSILE_SPEED_INCREASE, **kwargs)
 
 class MachineGunDrop(SupplyDrop):
     def __init__(self, **kwargs):
-        super().__init__(color=color.white, texture="assets/images/machine_gun.png", drop_effect=DropEffect.MISSILE_RATE_INCREASE, **kwargs)
+        super().__init__(color=color.white50, texture="assets/images/machine_gun.png", drop_effect=DropEffect.MISSILE_RATE_INCREASE, **kwargs)
 
 class LandmineDrop(SupplyDrop):
     def __init__(self, **kwargs):
-        super().__init__(color=color.white, texture="assets/images/landmine.png", drop_effect=DropEffect.LANDMINE_PICK, **kwargs)
+        super().__init__(color=color.white50, texture="assets/images/landmine.png", drop_effect=DropEffect.LANDMINE_PICK, **kwargs)
+
+class BuildingBlockDrop(SupplyDrop):
+    def __init__(self, **kwargs):
+        super().__init__(color=color.white50, texture="assets/images/white_wall.png", drop_effect=DropEffect.BUILDING_BLOCK_PICK, **kwargs)
 
 def randomize_drop(position):
     drop_list = [
         GunDrop,
         FastBulletDrop,
         MachineGunDrop,
-        LandmineDrop
+        LandmineDrop,
+        BuildingBlockDrop,
     ]
 
     random.choice(drop_list)(position=position)

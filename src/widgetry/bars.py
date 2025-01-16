@@ -1,7 +1,7 @@
 from ursina import *
 
-class AmmoBar(Entity):
-    def __init__(self,  max=10, count=0, icon_scale=(0.15, 0.15), bar_scale=(1, 0.1), **kwargs):
+class BaseBar(Entity):
+    def __init__(self,  max, count, icon_scale=(0.15, 0.15), bar_scale=(1, 0.1), **kwargs):
         super().__init__(self, **kwargs)
         self.max = max
         self.ammos = []
@@ -21,7 +21,19 @@ class AmmoBar(Entity):
                 position=(icon_scale[0]/2 + bar_scale[0]/2 + 0.05, 0, 0),
             )
         
+        self.bar_selection = Entity(
+            parent=self,
+                model='quad',
+                color=color.light_gray,
+                scale=(bar_scale[0] + icon_scale[0]/2, icon_scale[1]),
+                position=(icon_scale[0]/2 + bar_scale[0]/2 + 0.05, 0, 0.1),
+                visible=False,
+        )
+        
         self.init_bars(count)
+
+    def select(self, do_select):
+        self.bar_selection.visible = do_select
 
     def clear_bars(self):
         for bar in self.ammos:
@@ -29,7 +41,7 @@ class AmmoBar(Entity):
         self.ammos = []
 
     def init_bars(self, count):
-        """Create ammo bars based on current count."""
+        """Create bars based on current count."""
         self.clear_bars()
         self.bar_width = 1 / self.max # Each bar's width is proportional to max
         self.bar_distance = 1 / (self.max * 4)
@@ -70,6 +82,14 @@ class AmmoBar(Entity):
     def count(self):
         return len(self.ammos)
 
+class LandmineBar(BaseBar):
+    def __init__(self,  max=10, count=0, icon_scale=(0.15, 0.15), bar_scale=(1, 0.1), **kwargs):
+        super().__init__(max=max, count=count, icon_scale=icon_scale, bar_scale=bar_scale, texture='assets/images/landmine.png', **kwargs)
+
+class BuildingBlockBar(BaseBar):
+    def __init__(self,  max=10, count=0, icon_scale=(0.15, 0.15), bar_scale=(1, 0.1), **kwargs):
+        super().__init__(max=max, count=count, icon_scale=icon_scale, bar_scale=bar_scale, texture='assets/images/white_wall.png', **kwargs)
+
 
 if __name__ == '__main__':
     app = Ursina()
@@ -79,11 +99,10 @@ if __name__ == '__main__':
         if key == 'a':
             ammo_bar.add_bars(5)
 
-    ammo_bar = AmmoBar(
+    ammo_bar = LandmineBar(
     count=5,
     max=10,
-    position=(0, 0, 0),
-    texture='../assets/images/bullet0.png',  # Path to your ammo icon texture
+    position=(0, 0, 0)  # Path to your ammo icon texture
     )
 
     app.run()

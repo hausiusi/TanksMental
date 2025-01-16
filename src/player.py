@@ -3,7 +3,7 @@ from src.widgetry.healthbar import HealthBar
 from src.tank import Tank
 from src.controller import BaseController
 from src.enums import EntityType
-from src.widgetry.ammobar import AmmoBar
+from src.widgetry.bars import LandmineBar, BuildingBlockBar
 
 class Player(Tank):
     def __init__(self, game, controller: BaseController, controller_id, player_id: int, **kwargs):
@@ -16,8 +16,9 @@ class Player(Tank):
         self.initial_position = self.position
         self.initial_texture = self.texture
         self.controller.initialize_controller()
-        self.bullet_switch_speed = 0.3
+        self.switch_speed = 0.3
         self.last_bullet_switch = 0
+        self.last_deployable_switch = 0
         self.pause_allowed = True
         self.landmine_drop_allowed = True
         self.move_audio = Audio("assets/audio/tank_move.ogg", volume=1, loop=True, autoplay=False)
@@ -107,9 +108,21 @@ class Player(Tank):
             self.landmine_drop_allowed = True
 
         self.last_bullet_switch += time.dt
-        if buttons_state['next_bullet'] and self.last_bullet_switch > self.bullet_switch_speed:
+        if buttons_state['next_bullet'] and self.last_bullet_switch > self.switch_speed:
             self.ammunition.next_bullet_variant()
             self.last_bullet_switch = 0
+
+        self.last_deployable_switch += time.dt
+        if buttons_state['previous_bullet'] and self.last_deployable_switch > self.switch_speed:
+            self.ammunition.next_deployable()
+            self.last_deployable_switch = 0
+
+            if self.ammunition.chosen_deployable_index == 0:
+                self.landmine_stat.select(True)
+                self.building_block_stat.select(False)
+            elif self.ammunition.chosen_deployable_index == 1:
+                self.landmine_stat.select(False)
+                self.building_block_stat.select(True)
 
         if not self.is_exploded:
             self.health_bar.update_health(self.durability)
@@ -119,8 +132,9 @@ class Player(Tank):
             attr = stat_text_pair[0].name
             value = getattr(self, attr)
             stat_text_pair[1].text = f'{value}'
-        self.landmine_stat.set_ammo_bars(self.ammunition.landmines_count)
-
+        self.landmine_stat.set_ammo_bars(self.ammunition.landmine_deployer.items_count)
+        self.building_block_stat.set_ammo_bars(self.ammunition.building_block_deployer.items_count)
+        
     @property
     def bullets_on_screen(self):
         return len(self.ammunition.bullet_pool.active_bullets)
@@ -193,7 +207,9 @@ class Player(Tank):
             self.stat_text_pairs.append((name_text, value_text))
             pos_y -= 0.02
 
-        landmine_pos = self.game.pos_text_to_pos_entity(Vec2(pos_x, pos_y))
-        landmine_icon_scale = (0.2, 0.2)
-        landmine_pos.x += landmine_icon_scale[0]/2
-        self.landmine_stat = AmmoBar(max=10, count=0, icon_scale=landmine_icon_scale, position=landmine_pos, texture='assets/images/landmine.png')
+        bar_pos = self.game.pos_text_to_pos_entity(Vec2(pos_x, pos_y))
+        bar_icon_scale = (0.2, 0.2)
+        bar_pos.x += bar_icon_scale[0]/2
+        self.landmine_stat = LandmineBar(max=10, count=0, icon_scale=bar_icon_scale, position=bar_pos)
+        bar_pos.y -= bar_icon_scale[0]
+        self.building_block_stat = BuildingBlockBar(max=3, count=0, icon_scale=bar_icon_scale, position=bar_pos)

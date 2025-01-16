@@ -323,10 +323,10 @@ class Game:
                         model='quad',
                         entity_type=entity_type,
                         z = 0,                    
-                        texture=tile_texture,  # Apply the texture to each tile
-                        scale=(self.tile_size - 0.001, self.tile_size - 0.001),  # Set the tile size
-                        position=(pos_x, pos_y),  # Position the tile in the grid
-                        collider='box',  # Add a collider if needed (for interaction)
+                        texture=tile_texture,
+                        scale=(self.tile_size - 0.001, self.tile_size - 0.001),
+                        position=(pos_x, pos_y),
+                        collider='box',
                         durability=durability,
                         takes_hit=takes_hit,
                         damaging=damaging,

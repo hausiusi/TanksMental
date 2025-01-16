@@ -7,7 +7,7 @@ from PIL import Image
 from abc import ABC, abstractmethod
 
 class Landmine(Entity):
-    def __init__(self, owner, activation_sound, explosion_sound, explosion_animation : SpriteAnimator, **kwargs):
+    def __init__(self, owner:Entity, activation_sound, explosion_sound, explosion_animation : SpriteAnimator, **kwargs):
         super().__init__(
             model='quad', 
             texture='assets/images/landmine.png',            
@@ -46,6 +46,26 @@ class Landmine(Entity):
         self.explosion_sound.play()
         self.explosion_animation.animate(self, self._destroy)
 
+class BuildingBlock(Entity):
+    def __init__(self, owner:Entity, **kwargs):
+        self.tile_size = 1
+        self.owner = owner
+        super().__init__(name="building_block",
+                         model='quad',
+                            entity_type=EntityType.TERRAIN,
+                            z = 0,                    
+                            texture='assets/images/white_wall.png',
+                            scale=(self.tile_size - 0.001, self.tile_size - 0.001),
+                            position=(owner.x, owner.y),
+                            collider='box',
+                            durability=10,
+                            takes_hit=True,
+                            damaging=0,
+                            collision_effect=CollisionEffect.BARRIER,
+                            effect_strength=0,
+                            render_queue=1,
+                            color = color.Color(1,1,1,1),
+                            **kwargs)
 
 class Bullet(Entity):
     def __init__(self, **kwargs):
@@ -161,6 +181,20 @@ class LandmineDeployer(Deployable):
         deployed_object:Landmine = super().deploy()
         deployed_object.activate()
 
+class BuildingBlockDeployer(Deployable):
+    def __init__(self, owner:Entity, max_size:int):
+        self.owner = owner
+        self.block_deploy_sound = None # TODO: add block deploy sound
+        def deploy_object():
+            return BuildingBlock(owner=self.owner)
+        super().__init__(owner=owner, max_size=max_size, deploy_method=deploy_object, deploy_sound=self.block_deploy_sound)
+
+    def deploy(self):
+        if self.items_count <= 0:
+            return
+    
+        deployed_object:BuildingBlock = super().deploy()
+
 
 class AmmoCatalog:
     def __init__(self, owner:Entity):
@@ -169,6 +203,7 @@ class AmmoCatalog:
         self.shoot_sound0 = Audio("assets/audio/shoot0.wav", autoplay=False, volume=1.0)
         self.shoot_sound1 = Audio("assets/audio/shoot1.wav", autoplay=False, volume=1.0)
         self.landmine_deployer = LandmineDeployer(owner=owner, max_size=10)
+        self.building_block_deployer = BuildingBlockDeployer(owner=owner, max_size=5)
 
         texture_bullet0 = load_texture('assets/images/bullet0.png')
         texture_bullet1 = load_texture('assets/images/bullet1.png')
@@ -209,9 +244,8 @@ class AmmoCatalog:
         self.bullet_effect = None
         self.choose_bullet_pool(0)
 
-    @property
-    def landmines_count(self):
-        return self.landmine_deployer.items_count
+        self.deployables = [self.landmine_deployer, self.building_block_deployer]
+        self.choose_deployable(0)
 
     def choose_bullet_pool(self, bullet_pool_index):
         self.bullet_pool : BulletPool = self.bullet_pools[bullet_pool_index]
@@ -244,12 +278,26 @@ class AmmoCatalog:
         if play_sound:
             self.bullet_pool.shoot_sound.play()
 
-    def add_landmine(self, owner:Entity):
+    def choose_deployable(self, index):
+        self.chosen_deployable_index = index
+
+    def next_deployable(self):
+        self.chosen_deployable_index += 1
+        if self.chosen_deployable_index >= len(self.deployables):
+            self.chosen_deployable_index = 0
+
+        self.choose_deployable(self.chosen_deployable_index)
+        print(f"Choosing deployable {self.chosen_deployable_index}")
+
+    def add_landmine(self):
         self.landmine_deployer.add()
         # add landmine effect to owner
 
     def deploy_landmine(self, play_sound=False):
         self.landmine_deployer.deploy()
 
-    def add_block(self, owner:Entity):
-        pass
+    def add_block(self):
+        self.building_block_deployer.add()
+
+    def deploy_block(self):
+        self.building_block_deployer.deploy()
