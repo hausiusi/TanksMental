@@ -137,6 +137,8 @@ class Tank(Entity):
                         self.ammunition.add_landmine()
                     if collided_entity.drop_effect == DropEffect.BUILDING_BLOCK_PICK:
                         self.ammunition.add_block()
+                        self.ammunition.add_block()
+                    destroy(collided_entity)
                     destroy(collided_entity)
                 elif (collided_entity.entity_type == EntityType.ENEMY_TANK 
                       or collided_entity.entity_type == EntityType.PLAYER_TANK or 

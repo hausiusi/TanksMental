@@ -157,7 +157,8 @@ class Deployable(BaseDeployable):
             return
         self.items_count -= 1
         deployed_object = self.deploy_method()
-        self.deploy_sound.play()
+        if self.deploy_sound is not None:
+            self.deploy_sound.play()
         return deployed_object
 
 class LandmineDeployer(Deployable):
@@ -195,6 +196,37 @@ class BuildingBlockDeployer(Deployable):
     
         deployed_object:BuildingBlock = super().deploy()
 
+        offset_x = math.sin(math.radians(self.owner.rotation_z)) * self.owner.scale_x * 1.2
+        offset_y = math.cos(math.radians(self.owner.rotation_z)) * self.owner.scale_y * 1.2
+        deployed_object.position = self.owner.position + Vec3(offset_x, offset_y, 0)
+
+class Deployables:
+    def __init__(self, owner:Entity):
+        self.deployables = {"landmine_deployer" : LandmineDeployer(owner=owner, max_size=10),
+                            "bb_deployer" : BuildingBlockDeployer(owner=owner, max_size=5) }
+        self.deployable_keys = list(self.deployables.keys())
+        self.choose_deployable(0)
+    
+    def choose_deployable(self, index):
+        self.chosen_deployable_index = index
+        deployable_key = self.deployable_keys[index]  # Access by index from the list
+        self.active_deployable = self.deployables[deployable_key]
+        print(f"Active deployable: {deployable_key}")
+
+    def next_deployable(self):
+        self.chosen_deployable_index += 1
+        if self.chosen_deployable_index >= len(self.deployable_keys):
+            self.chosen_deployable_index = 0
+        self.choose_deployable(self.chosen_deployable_index)
+    
+    def add_landmine(self):
+        self.deployables["landmine_deployer"].add()
+    
+    def add_building_block(self):
+        self.deployables["bb_deployer"].add()
+    
+    def deploy(self):
+        return self.active_deployable.deploy()
 
 class AmmoCatalog:
     def __init__(self, owner:Entity):
@@ -202,8 +234,7 @@ class AmmoCatalog:
         self.game = owner.game
         self.shoot_sound0 = Audio("assets/audio/shoot0.wav", autoplay=False, volume=1.0)
         self.shoot_sound1 = Audio("assets/audio/shoot1.wav", autoplay=False, volume=1.0)
-        self.landmine_deployer = LandmineDeployer(owner=owner, max_size=10)
-        self.building_block_deployer = BuildingBlockDeployer(owner=owner, max_size=5)
+        self.deploy_pool = Deployables(owner=owner)
 
         texture_bullet0 = load_texture('assets/images/bullet0.png')
         texture_bullet1 = load_texture('assets/images/bullet1.png')
@@ -244,9 +275,6 @@ class AmmoCatalog:
         self.bullet_effect = None
         self.choose_bullet_pool(0)
 
-        self.deployables = [self.landmine_deployer, self.building_block_deployer]
-        self.choose_deployable(0)
-
     def choose_bullet_pool(self, bullet_pool_index):
         self.bullet_pool : BulletPool = self.bullet_pools[bullet_pool_index]
         self.chosen_bullet_index = bullet_pool_index
@@ -279,25 +307,17 @@ class AmmoCatalog:
             self.bullet_pool.shoot_sound.play()
 
     def choose_deployable(self, index):
-        self.chosen_deployable_index = index
+        self.deploy_pool.choose_deployable(index)
 
     def next_deployable(self):
-        self.chosen_deployable_index += 1
-        if self.chosen_deployable_index >= len(self.deployables):
-            self.chosen_deployable_index = 0
+        self.deploy_pool.next_deployable()
 
-        self.choose_deployable(self.chosen_deployable_index)
-        print(f"Choosing deployable {self.chosen_deployable_index}")
+    def deploy_object(self):
+        self.deploy_pool.deploy()
 
     def add_landmine(self):
-        self.landmine_deployer.add()
+        self.deploy_pool.add_landmine()
         # add landmine effect to owner
-
-    def deploy_landmine(self, play_sound=False):
-        self.landmine_deployer.deploy()
-
+    
     def add_block(self):
-        self.building_block_deployer.add()
-
-    def deploy_block(self):
-        self.building_block_deployer.deploy()
+        self.deploy_pool.add_building_block()

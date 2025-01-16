@@ -102,7 +102,7 @@ class Player(Tank):
             self.can_shoot = True
 
         if buttons_state['drop'] and self.landmine_drop_allowed:
-            self.ammunition.deploy_landmine(play_sound=True)
+            self.ammunition.deploy_object()
             self.landmine_drop_allowed = False
         elif not buttons_state['drop'] and not self.landmine_drop_allowed:
             self.landmine_drop_allowed = True
@@ -117,10 +117,10 @@ class Player(Tank):
             self.ammunition.next_deployable()
             self.last_deployable_switch = 0
 
-            if self.ammunition.chosen_deployable_index == 0:
+            if self.ammunition.deploy_pool.chosen_deployable_index == 0:
                 self.landmine_stat.select(True)
                 self.building_block_stat.select(False)
-            elif self.ammunition.chosen_deployable_index == 1:
+            elif self.ammunition.deploy_pool.chosen_deployable_index == 1:
                 self.landmine_stat.select(False)
                 self.building_block_stat.select(True)
 
@@ -132,8 +132,8 @@ class Player(Tank):
             attr = stat_text_pair[0].name
             value = getattr(self, attr)
             stat_text_pair[1].text = f'{value}'
-        self.landmine_stat.set_ammo_bars(self.ammunition.landmine_deployer.items_count)
-        self.building_block_stat.set_ammo_bars(self.ammunition.building_block_deployer.items_count)
+        self.landmine_stat.set_ammo_bars(self.ammunition.deploy_pool.deployables["landmine_deployer"].items_count)
+        self.building_block_stat.set_ammo_bars(self.ammunition.deploy_pool.deployables["bb_deployer"].items_count)
         
     @property
     def bullets_on_screen(self):
@@ -212,4 +212,5 @@ class Player(Tank):
         bar_pos.x += bar_icon_scale[0]/2
         self.landmine_stat = LandmineBar(max=10, count=0, icon_scale=bar_icon_scale, position=bar_pos)
         bar_pos.y -= bar_icon_scale[0]
-        self.building_block_stat = BuildingBlockBar(max=3, count=0, icon_scale=bar_icon_scale, position=bar_pos)
+        self.building_block_stat = BuildingBlockBar(max=5, count=0, icon_scale=bar_icon_scale, position=bar_pos)
+        self.landmine_stat.select(True)

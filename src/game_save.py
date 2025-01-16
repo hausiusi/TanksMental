@@ -31,8 +31,8 @@ class SaveManager:
                     "max_bullets" : bullet_pool.max_bullets,
                 }
                 ammunition_to_save["bullet_pools"].append(pool_to_save)
-                ammunition_to_save["landmines_count"] = player.ammunition.landmine_deployer.items_count
-                ammunition_to_save["building_blocks_count"] = player.ammunition.building_block_deployer.items_count
+                ammunition_to_save["landmines_count"] = player.ammunition.deploy_pool.deployables["landmine_deployer"].items_count
+                ammunition_to_save["building_blocks_count"] = player.ammunition.deploy_pool.deployables["bb_deployer"].items_count
             player_to_save = {
                 "player_id": player.player_id,
                 "max_speed": player.max_speed,
