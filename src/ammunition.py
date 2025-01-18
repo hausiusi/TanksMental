@@ -235,6 +235,13 @@ class Deployables:
     
     def deploy(self):
         return self.active_deployable.deploy()
+    
+    def recover_from_save(self, save: list):
+        for deployable in save:
+            name = deployable['name']
+            count = deployable['items_count']
+            for i in range(count):
+                self.deployables[name].add() 
 
 class AmmoCatalog:
     def __init__(self, owner:Entity):

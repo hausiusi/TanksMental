@@ -5,6 +5,7 @@ from src.settings import Settings
 from src.controller import PS4Controller, KeyboardController, BaseController
 from src.misc.utils import get_files_in_folder, json_load
 from src.character import IronGuard, TrailBlazer, PlayerCharacter
+from src.menu.menuentry import Menu
 
 class StartMenuElement(Entity):
     def __init__(self, scale=(0.5, 0.5), **kwargs):
@@ -67,7 +68,6 @@ class BaseControllerAvatar(Entity):
             self.buttons_move_timeout = 0
             self.on_controller_moving(self, 'left' if buttons_state['left'] else 'right')
 
-
 class ControllerAvatar(BaseControllerAvatar):
     def __init__(self, controller:BaseController, **kwargs):
         super().__init__(
@@ -91,77 +91,6 @@ class TankAvatar(Entity):
         self.outline = Outline(self)
         self.character = character
 
-class HomeMenuItems(Entity):
-    def __init__(self, controllers, **kwargs):
-        super().__init__(model='quad', color=color.gray, **kwargs)
-        self.controllers = controllers
-        self.element_switch_delay = 0.3
-        self.element_switch_timer = 0
-        self.selected_index = -1
-        self.selected_item = None
-        self.scroll_is_blocked = False
-
-    def select_element(self):
-        for menu_item in self.children:
-            if menu_item.menu_index == self.selected_index:
-                menu_item.color = color.black33
-                menu_item.is_selected = True
-                self.selected_item = menu_item
-            else:
-                menu_item.color = color.black
-                menu_item.is_selected = False
-
-    def update(self):
-        index_limit = len(self.children)
-        self.element_switch_timer += time.dt
-        if self.element_switch_timer > self.element_switch_delay:            
-            self.scroll_is_blocked = False
-            self.element_switch_timer = 0
-
-        scroll_requested = False
-        for controller in self.controllers:
-            for i in range(controller.controllers_count):
-                buttons_state = controller.get_buttons_state(i)
-                if buttons_state['up']:
-                    scroll_requested = True
-                    if  not self.scroll_is_blocked:
-                        self.selected_index = (self.selected_index - 1) % index_limit
-                elif buttons_state['down']:
-                    scroll_requested = True
-                    if not self.scroll_is_blocked:
-                        self.selected_index = (self.selected_index + 1) % index_limit
-                elif buttons_state['shoot']:
-                    if self.selected_item is not None:
-                        self.selected_item.enter_callback(self)
-                elif buttons_state['drop']:
-                    if self.selected_item is not None:
-                        self.selected_item.exit_callback(self)
-
-        if not self.scroll_is_blocked:
-            self.select_element()
-            self.element_switch_timer = 0
-
-        self.scroll_is_blocked = scroll_requested
-
-class HomeMenuText(Entity):
-    def __init__(self, text, enter_callback, menu_index, exit_callback=None, **kwargs):
-        super().__init__(model='quad', **kwargs)
-        self.enter_callback = enter_callback
-        self.exit_callback = exit_callback
-        self.is_selected = False        
-        self.text_entity = Text(
-            parent=self,
-            text=text,
-            position=(-0.5, 0.1, -0.1),
-            color=color.red,
-            scale=(3.8, 10, 0)
-        )
-        self.menu_index = menu_index
-        print(f"Added text {text}")
-        print(f"Parent scale: {self.scale}")
-        print(f"Text entity scale: {self.text_entity.scale}")
-        
-
 class StartMenu:
     def __init__(self, game, start_game_callback=None, continue_game_callback=None):
         self.colors = [
@@ -184,70 +113,75 @@ class StartMenu:
         self.keyboardcontroller.initialize_controller()
         self.ps4controller.initialize_controller()        
         self.controllers_count = len(self.ps4controller.controllers)
-        self._display_home_menu()
+        self.init_menus()
+        
+        #self._display_home_menu()
 
-    def _load_saved_game(self, sender):
-        if not getattr(getattr(sender, 'selected_item', None), 'file_path', None):
-            print("Error: no file path has been provided to load the game")
-            return
-        file_path = sender.selected_item.file_path
+    def init_menus(self):
+        # Main Menu Actions
+        main_menu = Menu(
+            controllers=[self.keyboardcontroller, self.ps4controller],
+            title="Main Menu",
+            options=["Start", "Continue", "Settings", "Exit"],
+            action_map={
+                "Exit": self._exit,
+            },
+        )
+        
+        files = get_files_in_folder('saves/game')
+
+        options = []
+        for file in files:
+            file_name, _ = file
+            options.append(file_name)
+        continue_menu = Menu(
+            controllers=[self.keyboardcontroller, self.ps4controller],
+            title="Continue",
+            options=options,
+            parent_menu=main_menu
+        )
+
+        action_map = {}
+        for file in files:
+            file_name, file_path = file         
+            action_map[file_name] = lambda: [continue_menu.deactivate(), self._load_saved_game(file_path=file_path)]
+        continue_menu.action_map = action_map
+
+        settings_menu = Menu(
+            controllers=[self.keyboardcontroller, self.ps4controller],
+            title="Settings",
+            options=["Screen resolution", "Enable friendly fire", "Game difficulty", "Controller settings"],
+            parent_menu=main_menu
+        )
+
+        controller_menu = Menu(
+            controllers=[self.keyboardcontroller, self.ps4controller],
+            title="Controller Settings",
+            options=["Shoot", "Switch bullet", "Switch droppable", "Drop"],
+            parent_menu=settings_menu
+        )
+
+        # Link Submenus to Actions
+        main_menu.action_map.update({
+            "Start"   : lambda: [main_menu.deactivate(), self._display_setup_new_game(self)],
+            "Continue": lambda: [main_menu.deactivate(), continue_menu.activate()],
+            "Settings": lambda: [main_menu.deactivate(), settings_menu.activate()],
+        })
+
+        settings_menu.action_map.update({
+            "Controller settings": lambda: [settings_menu.deactivate(), controller_menu.activate()],
+        })
+
+        # Activate Main Menu
+        main_menu.activate()
+
+    def _load_saved_game(self, file_path):
         print(f"Loading the saved game {file_path}")
         players, level = SaveManager().load_game(self.game, file_path, [self.keyboardcontroller, self.ps4controller])
         self.continue_game_callback(os.path.basename(file_path), players, level)
 
-    def _display_continue_game(self, sender):
-        self.destroy_startmenu_elements()
-        self._display_title()
-        print("Continue the saved game")
-        self.continue_game_holder = HomeMenuItems(
-            controllers=[self.keyboardcontroller, self.ps4controller],
-            scale=(5, 5)
-            )
-        
-        files = get_files_in_folder('saves/game')
-        for i, file in enumerate(files):
-            file_name, file_path = file
-            text_entity = HomeMenuText(text=file_name,                         
-                                       enter_callback=self._load_saved_game,
-                                       menu_index=i,
-                                       texture='assets/images/black.png',
-                                       parent=self.continue_game_holder,
-                                       position=(0, 0.38 - i * 0.25, -0.05),
-                                       scale=(0.9, 0.23),
-                                       file_path=file_path
-                                       )
-
-        self.startmenu_elements.append(self.continue_game_holder)
-
-    def _display_options(self, sender):
-        print("Change settings")
-
     def _exit(self, sender):
         exit()
-
-    def _display_home_menu(self):
-        menu_options = {
-            "Start Game" : self._display_setup_new_game, 
-            "Continue Game" : self._display_continue_game, 
-            "Options" : self._display_options,
-             "Exit" : self._exit}
-        
-        self.home_menu_holder = HomeMenuItems(
-            controllers=[self.keyboardcontroller, self.ps4controller],
-            scale=(5, 5)
-            )
-        
-        for i, (text, callback) in enumerate(menu_options.items()):
-            text_entity = HomeMenuText(text=text,                         
-                                       enter_callback=callback,
-                                       menu_index=i,
-                                       texture='assets/images/black.png',
-                                       parent=self.home_menu_holder,
-                                       position=(0, 0.38 - i * 0.25, -0.05),
-                                       scale=(0.9, 0.23),
-                                       )
-        self.startmenu_elements.append(self.home_menu_holder)
-
 
     def _display_setup_new_game(self, sender):
         self.destroy_startmenu_elements()

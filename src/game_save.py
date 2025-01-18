@@ -22,7 +22,7 @@ class SaveManager:
         for player in players:
             ammunition_to_save = {
                 "bullet_pools": [],
-                "landmines_count" : 0
+                "deploy_pool" : [],
             }
             for bullet_pool in player.ammunition.bullet_pools:
                 pool_to_save = {
@@ -31,8 +31,13 @@ class SaveManager:
                     "max_bullets" : bullet_pool.max_bullets,
                 }
                 ammunition_to_save["bullet_pools"].append(pool_to_save)
-                ammunition_to_save["landmines_count"] = player.ammunition.deploy_pool.deployables["landmine_deployer"].items_count
-                ammunition_to_save["building_blocks_count"] = player.ammunition.deploy_pool.deployables["bb_deployer"].items_count
+
+            for key, deployable in player.ammunition.deploy_pool.deployables.items():
+                deployable_to_save = {
+                    "name" : key,
+                    "items_count" : deployable.items_count 
+                }
+                ammunition_to_save["deploy_pool"].append(deployable_to_save)
             player_to_save = {
                 "player_id": player.player_id,
                 "max_speed": player.max_speed,
@@ -47,7 +52,7 @@ class SaveManager:
                 "ammunition" : ammunition_to_save,
             }
             data_to_save["players"].append(player_to_save)
-            data_to_save["level"] = level
+            data_to_save["level"] = level + 1 
 
             json_save(data_to_save, file)
 
@@ -105,8 +110,7 @@ class SaveManager:
                 pool.max_bullets = pool_props['max_bullets']
                 pool.hit_damage = pool_props['hit_damage']
                 pool.bullet_speed = pool_props['bullet_speed']
-            ammunition.landmine_deployer.items_count = player_props["ammunition"]['landmines_count']
-            ammunition.building_block_deployer.items_count = player_props["ammunition"]["building_blocks_count"]
+            ammunition.deploy_pool.recover_from_save(player_props['ammunition']['deploy_pool'])
             player.ammunition = ammunition
 
             players.append(player)

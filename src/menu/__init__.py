@@ -1,0 +1,1 @@
+from src.menu.menuentry import Menu
