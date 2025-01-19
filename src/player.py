@@ -28,6 +28,9 @@ class Player(Tank):
         self.game.spawn(self)
         self.is_exploded = False
         self.texture = self.initial_texture
+        self.color = color.rgba(self.color.r, self.color.g, self.color.b, 1)
+        self.health_bar.visible = True
+        self.ammunition.bullet_effect.visible = True
         self.remove_counter = 0
         self.durability = self.max_durability
         self.rotation_z = 0 # Respawn pointing up

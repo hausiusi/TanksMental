@@ -26,6 +26,7 @@ class Landmine(Entity):
         self.owner = owner
         self.activation_timer = Timer(3, 1, lambda _: None, self.activate)
         self.position = owner.position
+        self.exploding = False
     
     def activate(self):
         def _activate():
@@ -38,6 +39,8 @@ class Landmine(Entity):
 
     def update(self):
         self.activation_timer.update()
+        if self.exploding:
+            self.explosion_animation.update()
 
     def _destroy(self):
         destroy(self)
@@ -45,6 +48,8 @@ class Landmine(Entity):
     def explode(self):
         self.explosion_sound.play()
         self.explosion_animation.animate(self, self._destroy)
+        self.exploding = True
+        
 
 class BuildingBlock(Entity):
     def __init__(self, owner:Entity, **kwargs):
@@ -241,7 +246,7 @@ class Deployables:
             name = deployable['name']
             count = deployable['items_count']
             for i in range(count):
-                self.deployables[name].add() 
+                self.deployables[name].add()
 
 class AmmoCatalog:
     def __init__(self, owner:Entity):

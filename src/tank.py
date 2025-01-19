@@ -5,6 +5,7 @@ from src.misc.timer import Timer
 from src.ammunition import AmmoCatalog
 from src.widgetry.drops import randomize_drop
 from src.widgetry.effects import WetEffect, FireEffect
+from src.misc.spranimator import SpriteAnimator
 
 class Tank(Entity):
     def __init__(self, game, max_durability, **kwargs):
@@ -21,6 +22,7 @@ class Tank(Entity):
         self.collision_effect = CollisionEffect.BARRIER
         self.is_burn_damaging = False
         self.deaths = 0
+        self.explosion_animation = SpriteAnimator('assets/animations/explosion', delay=0.05)
 
         self.burn_damage_timer = Timer(timeout=1, counts=10, tick_callback=self.apply_burn_damage, end_callback=self.stop_burn_damage)
         self.wet_damage_timer = Timer(timeout=5, counts=1, tick_callback=self.apply_wet_damage, end_callback=self.stop_wet_damage)
@@ -84,11 +86,26 @@ class Tank(Entity):
         self.affected_speed = 0
         self.slow_down_timer.stop()
 
-    def check_destroy(self, texture='assets/images/tank0_explode.png'):
+    def check_destroy(self):
         if self.durability <= 0:
-            self.texture = texture
             self.is_exploded = True
+            self.color = color.rgba(self.color.r, self.color.g, self.color.b, 0.5)
+            self.health_bar.visible = False
+            self.ammunition.bullet_effect.visible = False
+            self.explosion_animation.animate(self, self._destroy_or_respawn)  
             self.deaths += 1
+
+    def _destroy_or_respawn(self):        
+        is_enemy_tank = self.entity_type is not EntityType.PLAYER_TANK
+        if is_enemy_tank:
+            for bullet_pool in self.ammunition.bullet_pools:
+                bullet_pool.destroy_bullets()
+            print(f'{self} destroyed')
+            position = self.position
+            destroy(self)
+            randomize_drop(position)
+        else:
+            self.respawn()
 
     def respawn(self):
         raise Exception("We implement respawn method of Tank entity in derived classes")
@@ -226,22 +243,16 @@ class Tank(Entity):
         self.slow_down_timer.update()
 
         if self.is_exploded:
-            self.remove_counter += time.dt
-            if self.remove_counter > self.remove_limit:
-                tmp_position = self.position
-                if self.entity_type is not EntityType.PLAYER_TANK:                    
-                    if self.entity_type == EntityType.BOSS:
-                        self.boss_audio.stop()
-                    # Let bullets hit the target or go off the screen
-                    if len(self.ammunition.bullet_pool.active_bullets) > 0:
-                        self.visible = False
-                        self.collider = None
-                    else:
-                        self.ammunition.bullet_pool.destroy_bullets()
-                        destroy(self)
-                        randomize_drop(tmp_position)               
-                else:
-                    self.respawn()
+            self.explosion_animation.update()
+            if self.entity_type == EntityType.BOSS:
+                self.boss_audio.stop()
+
+            # # TODO: Below code can be up to remove
+            # # Let bullets hit the target or go off the screen
+            # if len(self.ammunition.bullet_pool.active_bullets) > 0:
+            #     self.visible = False
+            #     self.collider = None
+                
                 
 
     def __move(self, next_position):
