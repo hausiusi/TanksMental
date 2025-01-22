@@ -68,17 +68,30 @@ class PS4Controller(BaseController):
             raise ValueError(f"No joystick found for player index {player_index}")
         self.refresh_buttons_state()
         joystick_state = self.states[player_index]
-        return {
-            "shoot": joystick_state["buttons"].get(0, False),
-            "drop": joystick_state["buttons"].get(1, False),
-            "up": joystick_state["buttons"].get(11, False),
-            "down": joystick_state["buttons"].get(12, False),
-            "left": joystick_state["buttons"].get(13, False),
-            "right": joystick_state["buttons"].get(14, False),
-            "previous_bullet": joystick_state["buttons"].get(9, False),
-            "next_bullet": joystick_state["buttons"].get(10, False),
-            "pause": joystick_state["buttons"].get(6, False)
-        }
+        if os.name == "nt":
+            return {
+                "shoot": joystick_state["buttons"].get(0, False),
+                "drop": joystick_state["buttons"].get(1, False),
+                "up": joystick_state["buttons"].get(11, False),
+                "down": joystick_state["buttons"].get(12, False),
+                "left": joystick_state["buttons"].get(13, False),
+                "right": joystick_state["buttons"].get(14, False),
+                "previous_bullet": joystick_state["buttons"].get(9, False),
+                "next_bullet": joystick_state["buttons"].get(10, False),
+                "pause": joystick_state["buttons"].get(6, False)
+            }
+        elif os.name == "posix":
+            return {
+                "shoot": joystick_state["buttons"].get(0, False),
+                "drop": joystick_state["buttons"].get(1, False),
+                "up": joystick_state["hat"][0][1] == 1,
+                "down": joystick_state["hat"][0][1] == -1,
+                "left": joystick_state["hat"][0][0] == -1,
+                "right": joystick_state["hat"][0][0] == 1,
+                "previous_bullet": joystick_state["buttons"].get(4, False),
+                "next_bullet": joystick_state["buttons"].get(5, False),
+                "pause": joystick_state["buttons"].get(9, False)
+            }
     
 
 class KeyboardController(BaseController):
