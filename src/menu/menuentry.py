@@ -19,7 +19,7 @@ class Menu(Entity):
         self.element_switch_timer = 0
 
         # Display Title
-        self.title_text = Text(text=title, scale=2, position=(-0.13, 0.4), visible=False)
+        self.title_text = Text(text=title, scale=2, position=(0, 0.4), origin=(0,0), visible=False, z=-0.2)
 
         # Display Options
         for i, option in enumerate(self.options):
@@ -29,7 +29,8 @@ class Menu(Entity):
                 origin=(0, 0),
                 parent=self,
                 scale=(25, 12),
-                visible=False
+                visible=False,
+                z=-0.2
             )
             self.text_elements.append(text)
 

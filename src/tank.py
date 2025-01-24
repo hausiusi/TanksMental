@@ -98,10 +98,10 @@ class Tank(Entity):
     def _destroy_or_respawn(self):        
         is_enemy_tank = self.entity_type is not EntityType.PLAYER_TANK
         if is_enemy_tank:
+            position = self.position
             for bullet_pool in self.ammunition.bullet_pools:
                 bullet_pool.destroy_bullets()
             print(f'{self} destroyed')
-            position = self.position
             destroy(self)
             randomize_drop(position)
         else:

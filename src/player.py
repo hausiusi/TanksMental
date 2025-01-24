@@ -35,9 +35,6 @@ class Player(Tank):
         self.durability = self.max_durability
         self.rotation_z = 0 # Respawn pointing up
 
-    def toggle_pause(self):
-        self.game.paused = not self.game.paused
-
     def update(self):
         if self.game.over:
             return
@@ -45,7 +42,7 @@ class Player(Tank):
             return # There is no controller connected for this player
         buttons_state = self.controller.get_buttons_state(self.controller_id)
         if buttons_state['pause'] and self.pause_allowed:
-            self.toggle_pause()
+            self.game.toggle_pause()
             self.pause_allowed = False
         elif not self.pause_allowed and not buttons_state['pause']:
             self.pause_allowed = True

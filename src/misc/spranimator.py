@@ -28,7 +28,6 @@ class SpriteAnimator:
         def run_animation():
             for frame in self.frames:
                 entity.texture = frame  # Update texture
-                print('Animating:', frame)
                 yield from wait(self.delay)  # Wait for the delay duration.
             if callable(callback):
                 callback()

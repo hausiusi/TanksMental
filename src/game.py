@@ -146,6 +146,13 @@ class Game:
         self.npc_spawner.load_level_npcs(self.level_index)
         self.npc_spawner.spawn_initial_npcs()
 
+    def toggle_pause(self):
+        self.paused = not self.paused
+        if self.paused:
+            self.start_menu.show_pause_menu()
+        else:
+            self.start_menu.hide_pause_menu()
+
     def pos_text_to_pos_entity(self, pos_text):
         return Vec2((pos_text.x / self.right_edge) * self.settings.horizontal_span / 2,
                     (pos_text.y / self.top_edge) * self.settings.vertical_span / 2)

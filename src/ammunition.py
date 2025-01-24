@@ -269,7 +269,7 @@ class AmmoCatalog:
         bullet = Bullet(owner=owner, model='quad', 
                    texture=texture_bullet0, 
                    color=color.white, scale=(0.1, 0.1), 
-                   z=-0.1, 
+                   z= 0.1,
                    visible=False)
         self.bullet_pools.append(BulletPool(owner=owner, 
                                             hit_damage=1,
@@ -282,7 +282,7 @@ class AmmoCatalog:
                    texture=texture_bullet1, 
                    color=color.white, 
                    scale=(0.15, 0.15), 
-                   z=-0.1,
+                   z=0.1,
                    visible=False)
         self.bullet_pools.append(BulletPool(owner=owner, 
                                             hit_damage=2,
