@@ -1,7 +1,7 @@
 import os
 from src.player import Player
 from src.ammunition import AmmoCatalog, BulletPool
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from src.misc.utils import json_load, json_save
 from src.controller import PS4Controller
 
@@ -10,10 +10,10 @@ class SaveManager:
         self.saves = []
 
     def get_saves(self):
+        # TODO: Use it (load saved games on init) in startmenu or remove
         return self.saves
     
-    def save_game(self, players: List[Player], level: int, file: Optional[str]=None):
-        file = os.path.join('saves', 'game', file)    
+    def save_game_to_dict(self, players: List[Player], level: int) -> dict:
         data_to_save = {
             "players": [],
             "level" : 0
@@ -52,14 +52,17 @@ class SaveManager:
                 "ammunition" : ammunition_to_save,
             }
             data_to_save["players"].append(player_to_save)
-            data_to_save["level"] = level + 1 
+            data_to_save["level"] = level
 
-            json_save(data_to_save, file)
+        return data_to_save
+    
+    def save_game_to_file(self, players: List[Player], level: int, file: Optional[str]=None):
+        file = os.path.join('saves', 'game', file)    
+        data_to_save = self.save_game_to_dict(players=players, level=level)
 
-    def load_game(self, game, save, controllers):
-        """Returns players with their state and the level that they reached"""
-        data = json_load(file_path=save)
+        json_save(data_to_save, file)
 
+    def load_game_from_dict(self, game, data, controllers) -> Tuple[List[Player], int]:
         def get_player_controller_and_index(requested_index):
             cumulative_index = 0
             for controller in controllers:
@@ -115,3 +118,10 @@ class SaveManager:
 
             players.append(player)
         return players, data['level']
+
+    def load_game_from_file(self, game, save, controllers):
+        """Returns players with their state and the level that they reached"""
+        data = json_load(file_path=save)
+        return self.load_game_from_dict(game, data, controllers)
+
+        

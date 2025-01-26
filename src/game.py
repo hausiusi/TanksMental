@@ -17,6 +17,7 @@ class Game:
         camera.fov = self.settings.camera_fov
         window.fullscreen = self.settings.fullscreen
         window.exit_button.visible = False
+        self.tanks = [] # Includes NPC and player tanks
 
         self.players = []
         self.start_menu = StartMenu(self, start_game_callback=self._start_new_game, continue_game_callback=self._continue_game)
@@ -41,6 +42,7 @@ class Game:
         self.terrain_entities = []
         self.active_bullets = []
         self.save_file_path = ""
+        self._initial_state = {}
 
         self.directions = {
             # Multiple variants for the same directions
@@ -128,10 +130,7 @@ class Game:
             position_index += 1
             self.players.append(player)
 
-        self.start_menu.destroy_startmenu_elements()
-        self.create_tile_map()
-        self.npc_spawner.load_level_npcs(self.level_index)
-        self.npc_spawner.spawn_initial_npcs()
+        self._initialize(0)
 
     def _continue_game(self, save_file_path, players: List[Player], level):
         self.save_file_path = save_file_path
@@ -140,11 +139,20 @@ class Game:
             player.position = self.player_positions[player.player_id]
             self.players.append(player)
         
-        self.level_index = level
+        self._initialize(level)
+
+    def _initialize(self, level:int):
         self.start_menu.destroy_startmenu_elements()
+        self._initial_state = SaveManager().save_game_to_dict(self.players, level)
+        self.level_index = level
         self.create_tile_map()
-        self.npc_spawner.load_level_npcs(self.level_index)
+        self.npc_spawner.load_level_npcs(level)
         self.npc_spawner.spawn_initial_npcs()
+
+    def restart_level(self):
+        self.total_cleanup()
+        players, level = SaveManager().load_game_from_dict(self, self._initial_state, self.start_menu.controllers)
+        self._continue_game(self.save_file_path, players, level)
 
     def toggle_pause(self):
         self.paused = not self.paused
@@ -187,7 +195,7 @@ class Game:
         if self.save_file_path == "":
             date_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
             self.save_file_path = f"{date_str}.json"
-            save_manager.save_game(self.players, self.level_index + 1, self.save_file_path)
+            save_manager.save_game_to_file(self.players, self.level_index, self.save_file_path)
         self.background = Entity(
         model='quad',
         texture='assets/images/black.png',
@@ -254,9 +262,25 @@ class Game:
         )
 
     def destroy_terrain_elements(self):
+        """Removes terrain elements. Doesn't affect the player objects"""
         for entity in self.terrain_entities:
             destroy(entity)
         self.terrain_entities = []
+
+    def total_cleanup(self):
+        """Removes everything, including terrain elements, player objects and droppings"""
+        for tank in self.tanks:
+            tank.on_destroy = lambda: None # Disabling on destroy spawn more or show game complete actions
+            tank.destroy()
+        self.destroy_terrain_elements()
+        self.players.clear()
+        self.tanks.clear()
+
+        print("Entities left on the scene")
+        for entity in scene.entities:
+            print(f"Entity: {entity}, Position: {entity.position}")
+
+        print("----------------------------------------------------")
 
     def create_tile_map(self):
         level_map = load_map(self.level_index)

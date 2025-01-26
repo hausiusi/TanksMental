@@ -193,7 +193,7 @@ class Player(Tank):
             position=(pos_x, pos_y),
             z=-0.1,
             color=color.white,
-            origin=(origin_x, pos_y)
+            origin=(origin_x, pos_y),
             )
 
             value_text = Text(
@@ -202,7 +202,7 @@ class Player(Tank):
             position=(pos_x + 0.1, pos_y),
             z=-0.1,
             color=color.white,
-            origin=(origin_x, pos_y)
+            origin=(origin_x, pos_y),
             )
             self.stat_text_pairs.append((name_text, value_text))
             pos_y -= 0.02
@@ -214,3 +214,16 @@ class Player(Tank):
         bar_pos.y -= bar_icon_scale[0]
         self.building_block_stat = BuildingBlockBar(max=5, count=0, icon_scale=bar_icon_scale, position=bar_pos)
         self.landmine_stat.select(True)
+
+    def destroy(self):
+        for stat_pair in self.stat_text_pairs:
+            name, value = stat_pair
+            if name is not None:
+                destroy(name)
+            if value is not None:
+                destroy(value)
+
+        destroy(self.building_block_stat)
+        destroy(self.landmine_stat)
+
+        super().destroy()

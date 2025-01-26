@@ -110,6 +110,7 @@ class StartMenu:
         self._display_title()
         self.keyboardcontroller = KeyboardController()
         self.ps4controller = PS4Controller()
+        self.controllers = [self.keyboardcontroller, self.ps4controller]
         self.keyboardcontroller.initialize_controller()
         self.ps4controller.initialize_controller()        
         self.controllers_count = len(self.ps4controller.controllers)
@@ -136,7 +137,7 @@ class StartMenu:
             file_name, _ = file
             options.append(file_name)
         self.continue_menu = Menu(
-            controllers=[self.keyboardcontroller, self.ps4controller],
+            controllers=self.controllers,
             title="Continue",
             options=options,
             parent_menu=self.main_menu
@@ -149,14 +150,14 @@ class StartMenu:
         self.continue_menu.action_map = action_map
 
         self.settings_menu = Menu(
-            controllers=[self.keyboardcontroller, self.ps4controller],
+            controllers=self.controllers,
             title="Settings",
             options=["Screen resolution", "Enable friendly fire", "Game difficulty", "Controller settings"],
             parent_menu=self.main_menu
         )
 
         self.controller_menu = Menu(
-            controllers=[self.keyboardcontroller, self.ps4controller],
+            controllers=self.controllers,
             title="Controller Settings",
             options=["Shoot", "Switch bullet", "Switch droppable", "Drop"],
             parent_menu=self.settings_menu
@@ -188,8 +189,9 @@ class StartMenu:
         )
             
         self.pause_menu.action_map.update({
-            "Continue" : lambda: self.game.toggle_pause(),
-            "Return to main menu": lambda: [self.hide_pause_menu(), self.show_main_menu()],
+            "Continue": lambda: self.game.toggle_pause(),
+            "Restart level": lambda: [self.game.toggle_pause(), self.game.restart_level()],
+            "Return to main menu": lambda: [self.hide_pause_menu(), self.game.total_cleanup(), self.show_main_menu()],
         })
 
     def show_main_menu(self):
@@ -206,7 +208,7 @@ class StartMenu:
 
     def _load_saved_game(self, file_path):
         print(f"Loading the saved game {file_path}")
-        players, level = SaveManager().load_game(self.game, file_path, [self.keyboardcontroller, self.ps4controller])
+        players, level = SaveManager().load_game_from_file(self.game, file_path, self.controllers)
         self.continue_game_callback(os.path.basename(file_path), players, level)
 
     def _exit(self):

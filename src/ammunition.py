@@ -4,10 +4,11 @@ from src.enums import EntityType, CollisionEffect
 from src.misc.timer import Timer
 from src.misc.spranimator import SpriteAnimator
 from PIL import Image
+from typing import List
 from abc import ABC, abstractmethod
 
 class Landmine(Entity):
-    def __init__(self, owner:Entity, activation_sound, explosion_sound, explosion_animation : SpriteAnimator, **kwargs):
+    def __init__(self, owner:Entity, explosion_animation : SpriteAnimator, **kwargs):
         super().__init__(
             model='quad', 
             texture='assets/images/landmine.png',            
@@ -17,16 +18,19 @@ class Landmine(Entity):
             z=0,             
             **kwargs
             )
+        
+        self.deploy_sound = Audio('assets/audio/landmine_drop.ogg', parent=self, autoplay=False, volume=1.0)
+        self.activation_sound = Audio('assets/audio/landmine_activation.ogg', parent=self,autoplay=False, volume=0.2)
+        self.explosion_sound = Audio('assets/audio/landmine_explosion.ogg', parent=self, autoplay=False, volume=1.0)
         self.effect_strength=50
         self.entity_type=EntityType.LANDMINE
         self.collision_effect=CollisionEffect.NO_EFFECT
         self.explosion_animation = explosion_animation
-        self.activation_sound = activation_sound
-        self.explosion_sound = explosion_sound
         self.owner = owner
         self.activation_timer = Timer(3, 1, lambda _: None, self.activate)
         self.position = owner.position
         self.exploding = False
+        self.deploy_sound.play()
     
     def activate(self):
         def _activate():
@@ -81,9 +85,10 @@ class BulletPool:
     def __init__(self, owner, pool_size, hit_damage, bullet_speed, shoot_sound, bullet):
         if pool_size < 1:
             raise Exception("BulletPool object must have size 1 or more")
-        self.texture = bullet.texture
         self.bullet_blueprint = bullet
-        self.pool = [duplicate(bullet) for _ in range(pool_size)]
+        self.texture = self.bullet_blueprint.texture
+        self.bullet_blueprint.name = f"Bullet blueprint. Owner: {owner}"
+        self.pool = [duplicate(self.bullet_blueprint) for _ in range(pool_size)]
         self.active_bullets = []
         self.size = pool_size
         self.hit_damage = hit_damage
@@ -106,7 +111,6 @@ class BulletPool:
             for _ in range(delta):
                 self.pool.pop()
         
-
     def take_bullet(self):
         if self.pool:
             bullet = self.pool.pop()
@@ -124,11 +128,26 @@ class BulletPool:
 
     def destroy_bullets(self):
         for bullet in self.pool:
+            print(f"Destroying pooled bullet: {bullet}")
             destroy(bullet)
         self.pool.clear()
+
         for bullet in self.active_bullets:
+            print(f"Destroying active bullet: {bullet}")
             destroy(bullet)
         self.active_bullets.clear()
+
+        if self.bullet_blueprint:
+            print(f"Destroying blueprint: {self.bullet_blueprint}")
+            destroy(self.bullet_blueprint)
+            self.bullet_blueprint = None  # Clear reference
+
+        if self.shoot_sound:
+            print(f"Destroying sound: {self.shoot_sound}")
+            destroy(self.shoot_sound)
+            self.shoot_sound = None  # Clear reference
+
+        print(f"BulletPool destruction for {self.owner} complete.")
 
 class BaseDeployable(ABC):
     '''Contains methods and attributes to help with deploying'''
@@ -145,12 +164,11 @@ class BaseDeployable(ABC):
         pass
 
 class Deployable(BaseDeployable):
-    def __init__(self, owner:Entity, max_size:int, deploy_method, deploy_sound:Audio):
+    def __init__(self, owner:Entity, max_size:int, deploy_method):
         self.max_size = max_size
         self.items_count = 0
         self.owner = owner
         self.deploy_method = deploy_method
-        self.deploy_sound = deploy_sound
 
     def add(self):
         if self.items_count >= self.max_size:
@@ -162,23 +180,16 @@ class Deployable(BaseDeployable):
             return
         self.items_count -= 1
         deployed_object = self.deploy_method()
-        if self.deploy_sound is not None:
-            self.deploy_sound.play()
         return deployed_object
 
 class LandmineDeployer(Deployable):
     def __init__(self, owner:Entity, max_size:int):
-        self.owner = owner
-        self.landmine_deploy_sound = Audio('assets/audio/landmine_drop.ogg', autoplay=False, volume=1.0)
-        self.landmine_activation_sound = Audio('assets/audio/landmine_activation.ogg', autoplay=False, volume=0.2)
-        self.landmine_explosion_sound = Audio('assets/audio/landmine_explosion.ogg', autoplay=False, volume=1.0)
-        self.landmine_explosion_animation = SpriteAnimator('assets/animations/landmine_explosion', delay=0.04)
+        self.owner = owner  
+        self.landmine_explosion_animation = SpriteAnimator('assets/animations/landmine_explosion', delay=0.04)     
         def deploy_object():
-            return Landmine(owner=self.owner, 
-                            activation_sound=self.landmine_activation_sound,                             
-                            explosion_sound=self.landmine_explosion_sound, 
+            return Landmine(owner=self.owner,
                             explosion_animation=self.landmine_explosion_animation, visible=True)
-        super().__init__(owner=owner, max_size=max_size, deploy_method=deploy_object, deploy_sound=self.landmine_deploy_sound)
+        super().__init__(owner=owner, max_size=max_size, deploy_method=deploy_object)
 
     def deploy(self):
         if self.items_count <= 0:
@@ -193,7 +204,7 @@ class BuildingBlockDeployer(Deployable):
         self.block_deploy_sound = None # TODO: add block deploy sound
         def deploy_object():
             return BuildingBlock(owner=self.owner)
-        super().__init__(owner=owner, max_size=max_size, deploy_method=deploy_object, deploy_sound=self.block_deploy_sound)
+        super().__init__(owner=owner, max_size=max_size, deploy_method=deploy_object)
 
     def deploy(self):
         if self.items_count <= 0:
@@ -265,7 +276,7 @@ class AmmoCatalog:
 
         texture_bullet0 = reduce_texture_resolution(texture_bullet0, 5)
         texture_bullet1 = reduce_texture_resolution(texture_bullet1, 5)
-        self.bullet_pools = []
+        self.bullet_pools: List[BulletPool] = []
         bullet = Bullet(owner=owner, model='quad', 
                    texture=texture_bullet0, 
                    color=color.white, scale=(0.1, 0.1), 
@@ -341,3 +352,9 @@ class AmmoCatalog:
     
     def add_block(self):
         self.deploy_pool.add_building_block()
+
+    def destroy(self):
+        for bullet_pool in self.bullet_pools:
+            bullet_pool.destroy_bullets()
+        destroy(self.shoot_sound0)
+        destroy(self.shoot_sound1)

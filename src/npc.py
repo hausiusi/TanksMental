@@ -121,7 +121,7 @@ class NpcSpawner:
                 direction=0,
                 is_exploded=False,
                 remove_counter=0,
-                remove_limit=1
+                remove_limit=1,
             )
         enemy_tank.ammunition.choose_bullet_pool(self.npc_pool['chosen_bullet'])
         enemy_tank.ammunition.bullet_pool.max_bullets = self.npc_pool['max_bullets']

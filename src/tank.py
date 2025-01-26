@@ -11,6 +11,7 @@ class Tank(Entity):
     def __init__(self, game, max_durability, **kwargs):
         super().__init__(**kwargs)
         self.game = game
+        self.game.tanks.append(self)
         self.max_durability = max_durability
         self.durability = max_durability
         self.healthy_texture = self.texture
@@ -98,11 +99,8 @@ class Tank(Entity):
     def _destroy_or_respawn(self):        
         is_enemy_tank = self.entity_type is not EntityType.PLAYER_TANK
         if is_enemy_tank:
-            position = self.position
-            for bullet_pool in self.ammunition.bullet_pools:
-                bullet_pool.destroy_bullets()
-            print(f'{self} destroyed')
-            destroy(self)
+            position = self.position            
+            self.destroy()
             randomize_drop(position)
         else:
             self.respawn()
@@ -245,16 +243,15 @@ class Tank(Entity):
         if self.is_exploded:
             self.explosion_animation.update()
             if self.entity_type == EntityType.BOSS:
-                self.boss_audio.stop()
-
-            # # TODO: Below code can be up to remove
-            # # Let bullets hit the target or go off the screen
-            # if len(self.ammunition.bullet_pool.active_bullets) > 0:
-            #     self.visible = False
-            #     self.collider = None
+                self.boss_audio.stop()                
                 
-                
-
     def __move(self, next_position):
         if self.game.is_position_on_screen(next_position):
             self.position = next_position
+
+    def destroy(self):
+        self.ammunition.destroy()
+        destroy(self.boss_audio)
+
+        print(f'{self} destroyed')
+        destroy(self)
