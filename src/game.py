@@ -18,6 +18,7 @@ class Game:
         window.fullscreen = self.settings.fullscreen
         window.exit_button.visible = False
         self.tanks = [] # Includes NPC and player tanks
+        self.level_complete_audio = Audio("assets/audio/level_complete.ogg", autoplay=False, volume=1.0)
 
         self.players = []
         self.start_menu = StartMenu(self, start_game_callback=self._start_new_game, continue_game_callback=self._continue_game)
@@ -230,6 +231,7 @@ class Game:
         )
         
         self.level_complete = True
+        self.level_complete_audio.play()
 
     def show_you_win(self):
         background = Entity(
