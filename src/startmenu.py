@@ -23,8 +23,8 @@ class Outline(Entity):
                 texture='../assets/images/joystick_outline.png',
                 model='quad',
                 color=color.green,
-                scale=(1.1, 1.1),
-                position=(0, 0, -0.01),
+                scale=(1.1, 1.5),
+                position=(0, -0.2, -0.01),
                 visible=False,
                 **kwargs
             )
@@ -34,13 +34,13 @@ class BaseControllerAvatar(Entity):
         super().__init__(**kwargs)
         self.model = 'quad'
         self.controller = controller
-        self.outline = Outline(self)
         self.buttons_move_timeout = 0
         self.buttons_move_timeout_max = 0.2
         self.original_position = self.position
         self.original_scale = self.scale
         self._drop_allowed = True
         self._select_allowed = True
+        self.selected = False
         
     def update(self):
         self.buttons_move_timeout += time.dt
@@ -60,7 +60,7 @@ class BaseControllerAvatar(Entity):
             self._select_allowed = True
         
         # While the controller is selected, it can't move
-        if self.outline.visible:
+        if self.selected:
             return
         
         if ((buttons_state['left'] or buttons_state['right'])
@@ -68,7 +68,7 @@ class BaseControllerAvatar(Entity):
             self.buttons_move_timeout = 0
             self.on_controller_moving(self, 'left' if buttons_state['left'] else 'right')
 
-class ControllerAvatar(BaseControllerAvatar):
+class JoystickAvatar(BaseControllerAvatar):
     def __init__(self, controller:BaseController, **kwargs):
         super().__init__(
             texture='../assets/images/joystick.png',
@@ -90,6 +90,22 @@ class TankAvatar(Entity):
         self.controller_id = controller_id
         self.outline = Outline(self)
         self.character = character
+
+    @property
+    def selected(self):
+        return self.outline.visible and self.outline.color == color.green
+
+    def select(self):
+        self.outline.visible = True
+        self.outline.color = color.green
+
+    def mark(self):
+        self.outline.visible = True
+        self.outline.color = color.white
+
+    def deselect(self):
+        self.outline.visible = False
+        self.outline.color = color.white
 
 class StartMenu:
     def __init__(self, game, start_game_callback=None, continue_game_callback=None):
@@ -258,21 +274,23 @@ class StartMenu:
 
         # Reset the controller ID for the previous tank avatar if it was assigned
         if controller_avatar.parent is not scene:
+            controller_avatar.parent.deselect()
             controller_avatar.parent.controller_id = -1
 
         controller_avatar.parent = tank_avatar
+        tank_avatar.mark()
         tank_avatar.controller_id = controller_avatar.id
-        controller_avatar.position = (0, -tank_avatar.scale[1] / 2 - 0.1)
+        controller_avatar.position = (0, -tank_avatar.scale[1] / 2 + 0.15)
         controller_avatar.scale = (0.7, 0.7)
 
         print(f'Controller {tank_avatar.controller_id} assigned to tank {tank_avatar.id}')
 
     def on_controller_selecting(self, controller_avatar):
-        controller_avatar.outline.visible = True
-        controller_avatar.parent.outline.visible = True
+        controller_avatar.selected = True
+        controller_avatar.parent.select() 
         all_are_selected = True
         for tank_avatar in self.tank_avatars:
-            if tank_avatar.controller_id != -1 and not tank_avatar.outline.visible:
+            if tank_avatar.controller_id != -1 and not tank_avatar.selected:
                 all_are_selected = False
                 break
         
@@ -280,15 +298,16 @@ class StartMenu:
             print('All tanks are selected')
             if self.start_new_game_callback:
                 self.start_new_game_callback(
-                    [_controller_avatar for _controller_avatar in self.controller_avatars if _controller_avatar.outline.visible])
+                    [_controller_avatar for _controller_avatar in self.controller_avatars if _controller_avatar.selected])
 
     def on_controller_deselecting(self, controller_avatar):
-        if controller_avatar.outline.visible:
-            controller_avatar.outline.visible = False
-            controller_avatar.parent.outline.visible = False
+        if controller_avatar.selected:
+            controller_avatar.selected = False
+            controller_avatar.parent.mark()
             return
         
         controller_avatar.parent.controller_id = -1
+        controller_avatar.parent.deselect()
         controller_avatar.parent = scene
         controller_avatar.position = controller_avatar.original_position    
         controller_avatar.scale = controller_avatar.original_scale    
@@ -306,12 +325,12 @@ class StartMenu:
             on_controller_moving = self.on_controller_moving,
             on_controller_deselecting = self.on_controller_deselecting,
             on_controller_selecting = self.on_controller_selecting,
-            position = (start_x, -1))
+            position = (start_x, -3))
         self.startmenu_elements.append(keyboard)
         self.controller_avatars.append(keyboard)
         # Starting joystick controller from 1 as the first is the keyboard controller        
         for i in range(1, self.controllers_count + 1):
-            controller = ControllerAvatar(
+            controller = JoystickAvatar(
                 scale=(avatar_width + 0.2, avatar_width + 0.2),
                 id = i-1,
                 color = self.colors[i-1],
@@ -319,16 +338,13 @@ class StartMenu:
                 on_controller_moving = self.on_controller_moving,
                 on_controller_deselecting = self.on_controller_deselecting,
                 on_controller_selecting = self.on_controller_selecting,
-                position = (start_x + i * distance, -1))
-            controller.outline.visible = False
+                position = (start_x + i * distance, -3))
+            controller.selected = False
             self.startmenu_elements.append(controller)
             self.controller_avatars.append(controller)
-
-        pos_x = start_x + self.controllers_count * distance
         
-        keyboard.outline.visible = False
+        keyboard.selected = False
         
-
     def _display_tank_avatars(self):
         characters = [
             IronGuard,
@@ -336,11 +352,13 @@ class StartMenu:
         avatar_width = 1.7
         tanks_count = len(self.colors) * len(characters)
         distance = avatar_width + 0.5
-        avatars_span = tanks_count * distance
+        avatars_span = len(self.colors) * distance
         start_x = -avatars_span / 2 + avatar_width / 2
+        start_y = 2.5
         
         for character_index, character in enumerate(characters):
-            for i in range(len(self.colors)):
+            x_index = 0
+            for i in range(len(self.colors)):                
                 avatar_id = (len(self.colors) * character_index) + i
                 tank_avatar = TankAvatar(
                     character=character,
@@ -348,9 +366,12 @@ class StartMenu:
                     id = avatar_id,
                     color=self.colors[i],
                     scale=(avatar_width, avatar_width),
-                    position=(start_x + avatar_id * distance, 2.5))
+                    position=(start_x + x_index * distance, start_y))
                 self.tank_avatars.append(tank_avatar)
                 self.startmenu_elements.append(tank_avatar)
+                x_index += 1
+
+            start_y -= (avatar_width + 0.9)
     
     def _display_title(self):
         self.title = Text(
