@@ -95,6 +95,13 @@ class Game:
             )
             self.stat_text_pairs[key] = (name_text, value_text)
             pos_y -= 0.02
+        self._set_stat_texts_visible(False)
+
+    def _set_stat_texts_visible(self, visible):
+        for text_value_pair in self.stat_text_pairs.values():
+            stat_text, stat_value = text_value_pair
+            stat_text.visible = visible
+            stat_value.visible = visible        
     
     def _start_new_game(self, controller_avatars: list):
         position_index = 0
@@ -148,6 +155,7 @@ class Game:
         self.create_tile_map()
         self.npc_spawner.load_level_npcs(level)
         self.npc_spawner.spawn_initial_npcs()
+        self._set_stat_texts_visible(True)
 
     def restart_level(self):
         self.total_cleanup()
@@ -277,6 +285,7 @@ class Game:
         self.tanks.clear()
         self.start_menu.controller_avatars.clear()
         self.start_menu.tank_avatars.clear()
+        self._set_stat_texts_visible(False)
 
         print("Entities left on the scene")
         for entity in scene.entities:
