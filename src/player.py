@@ -225,5 +225,6 @@ class Player(Tank):
 
         destroy(self.building_block_stat)
         destroy(self.landmine_stat)
+        destroy(self.player_icon)
 
         super().destroy()

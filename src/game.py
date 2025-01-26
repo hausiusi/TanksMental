@@ -275,6 +275,7 @@ class Game:
         self.destroy_terrain_elements()
         self.players.clear()
         self.tanks.clear()
+        self.start_menu.controller_avatars.clear()
 
         print("Entities left on the scene")
         for entity in scene.entities:

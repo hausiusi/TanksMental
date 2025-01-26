@@ -191,7 +191,7 @@ class StartMenu:
         self.pause_menu.action_map.update({
             "Continue": lambda: self.game.toggle_pause(),
             "Restart level": lambda: [self.game.toggle_pause(), self.game.restart_level()],
-            "Return to main menu": lambda: [self.hide_pause_menu(), self.game.total_cleanup(), self.show_main_menu()],
+            "Return to main menu": lambda: [self.hide_pause_menu(), self.game.toggle_pause(), self.game.total_cleanup(), self.show_main_menu()],
         })
 
     def show_main_menu(self):
