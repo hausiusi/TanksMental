@@ -136,9 +136,9 @@ class StartMenu:
         #self._display_home_menu()
 
     def init_menus(self):
-        # Main Menu Actions
+        # Main Menu
         self.main_menu = Menu(
-            controllers=[self.keyboardcontroller, self.ps4controller],
+            controllers=self.controllers,
             title="Main Menu",
             options=["Start", "Continue", "Settings", "Exit"],
             action_map={
@@ -179,7 +179,6 @@ class StartMenu:
             parent_menu=self.settings_menu
         )
 
-        # Link Submenus to Actions
         self.main_menu.action_map.update({
             "Start"   : lambda: [self.main_menu.deactivate(), self._display_setup_new_game(self)],
             "Continue": lambda: [self.main_menu.deactivate(), self.continue_menu.activate()],
@@ -190,7 +189,7 @@ class StartMenu:
             "Controller settings": lambda: [self.settings_menu.deactivate(), self.controller_menu.activate()],
         })
 
-        # pause menu
+        # Pause menu
         self.pause_background = Entity(model='quad', 
                                   scale=(self.settings.horizontal_game_area + 1, self.settings.vertical_game_area + 1), 
                                   color=color.black66,
@@ -199,7 +198,7 @@ class StartMenu:
                                   render_queue=3,
                                   visible=False)
         self.pause_menu = Menu(
-        controllers=[self.keyboardcontroller, self.ps4controller],
+        controllers=self.controllers,
         title="Game paused",
         options=["Continue", "Restart level", "Settings", "Return to main menu"],
         )
@@ -208,6 +207,26 @@ class StartMenu:
             "Continue": lambda: self.game.toggle_pause(),
             "Restart level": lambda: [self.game.toggle_pause(), self.game.restart_level()],
             "Return to main menu": lambda: [self.hide_pause_menu(), self.game.toggle_pause(), self.game.total_cleanup(), self.show_main_menu()],
+        })
+
+        # Game over menu
+        self.game_over_background = Entity(model='quad', 
+                                  scale=(self.settings.horizontal_game_area + 1, self.settings.vertical_game_area + 1), 
+                                  color=color.black66,
+                                  transparent=True,
+                                  z=-0.1,
+                                  render_queue=3,
+                                  visible=False)
+        self.game_over_menu = Menu(
+            controllers=self.controllers,
+            title="Game Over",
+            options=["Restart level", "Return to main menu"],
+        )
+        self.game_over_menu.title_text.color = color.red
+
+        self.game_over_menu.action_map.update({
+            "Restart level": lambda: [self.hide_game_over_menu(), self.game.restart_level()],
+            "Return to main menu": lambda: [self.hide_game_over_menu(), self.game.total_cleanup(), self.show_main_menu()],
         })
 
     def show_main_menu(self):
@@ -220,6 +239,16 @@ class StartMenu:
     def hide_pause_menu(self):
         self.pause_menu.deactivate()
         self.pause_background.visible = False
+
+    def show_game_over_menu(self):
+        self.game_over_menu.activate()
+        self.game_over_background.visible = True
+        self.game.over = True
+
+    def hide_game_over_menu(self):
+        self.game_over_menu.deactivate()
+        self.game_over_background.visible = False
+        self.game.over = False
         
 
     def _load_saved_game(self, file_path):

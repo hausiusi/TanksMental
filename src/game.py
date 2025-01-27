@@ -181,23 +181,7 @@ class Game:
         self.barrier_entities = [e for e in scene.entities if hasattr(e, "collision_effect") and e.collision_effect == CollisionEffect.BARRIER]
 
     def show_game_over(self):
-        background = Entity(
-        model='quad',
-        texture='assets/images/black.png',
-        scale=(5, 1),          
-        #color=color.Color(1, 1, 1, 0.5),
-        z=-0.04,       
-        position=(0, 0)             
-        )
-        game_over_text = Text(
-        text='Game Over',            
-        scale=2,
-        z=-0.03,                    
-        position=(0, 0),            
-        color=color.red,            
-        origin=(0, 0)
-        )
-        self.over = True        
+        self.start_menu.show_game_over_menu()
     
     def show_level_complete(self):
         save_manager = SaveManager()
