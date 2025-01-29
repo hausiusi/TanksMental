@@ -100,6 +100,14 @@ class Game:
             pos_y -= 0.02
         self._set_stat_texts_visible(False)
 
+        self.battlefield = Entity(model='quad', 
+                                  scale=(self.settings.horizontal_game_area + 1, self.settings.vertical_game_area + 1), 
+                                  color=color.rgba(0.2, 0.2, 0.2, 0.2),
+                                  transparent=False,
+                                  z=1,
+                                  render_queue=1,
+                                  visible=True)
+
     def _set_stat_texts_visible(self, visible):
         for text_value_pair in self.stat_text_pairs.values():
             stat_text, stat_value = text_value_pair
@@ -165,6 +173,9 @@ class Game:
         self._continue_game(self.save_file_path, players, level)
 
     def toggle_pause(self):
+        if self.level_complete or self.over:
+            return # Don't pause on level complete and on game over
+
         self.paused = not self.paused
         if self.paused:
             self.start_menu.show_pause_menu()
