@@ -15,6 +15,8 @@ class Game:
         self.settings = Settings()
         camera.orthographic = True
         camera.fov = self.settings.camera_fov
+        window.size = self.settings.window_size
+        window.monitor = self.settings.monitor
         window.fullscreen = self.settings.fullscreen
         window.exit_button.visible = False
         self.tanks = [] # Includes NPC and player tanks
@@ -152,7 +154,6 @@ class Game:
     def _initialize(self, level:int):
         self.start_menu.destroy_startmenu_elements()
         self._initial_state = SaveManager().save_game_to_dict(self.players, level)
-        self.level_index = level
         self.create_tile_map()
         self.npc_spawner.load_level_npcs(level)
         self.npc_spawner.spawn_initial_npcs()

@@ -23,6 +23,7 @@ class Settings:
         self.horizontal_span = self.camera_fov * self.aspect_ratio
         self.vertical_span = self.camera_fov
         self.window_size = (1920, 1080)
+        self.monitor = 2
         
         # Player stats
         self.player_icon_scale = 0.4
