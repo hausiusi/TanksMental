@@ -6,6 +6,7 @@ from src.controller import PS4Controller, KeyboardController, BaseController
 from src.misc.utils import get_files_in_folder, json_load
 from src.character import IronGuard, TrailBlazer, PlayerCharacter
 from src.menu.menuentry import Menu
+from src.widgetry.effects import Outline
 
 class StartMenuElement(Entity):
     def __init__(self, scale=(0.5, 0.5), **kwargs):
@@ -15,19 +16,6 @@ class StartMenuElement(Entity):
         self.color = color.white
         self.collider = 'box'
         self.z = -1
-
-class Outline(Entity):
-    def __init__(self, parent_entity, **kwargs):
-        super().__init__(
-                parent=parent_entity,
-                texture='../assets/images/joystick_outline.png',
-                model='quad',
-                color=color.green,
-                scale=(1.1, 1.5),
-                position=(0, -0.2, -0.01),
-                visible=False,
-                **kwargs
-            )
         
 class BaseControllerAvatar(Entity):
     def __init__(self, controller:BaseController, **kwargs):
@@ -88,7 +76,7 @@ class TankAvatar(Entity):
             texture=character.initial_texture,
             **kwargs)
         self.controller_id = controller_id
-        self.outline = Outline(self)
+        self.outline = Outline(self, scale=(1.1, 1.5), position=(0, -0.2, -0.01), color=color.white, visible=False)
         self.character = character
 
     @property

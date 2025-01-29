@@ -1,5 +1,13 @@
 from ursina import *
 
+class Outline(Entity):
+    def __init__(self, parent_entity, **kwargs):
+        super().__init__(
+                parent=parent_entity,
+                texture='assets/images/joystick_outline.png',
+                model='quad',
+                **kwargs            )
+
 class WetEffect(Entity):
     def __init__(self, parent_entity=None, **kwargs):
         super().__init__(
