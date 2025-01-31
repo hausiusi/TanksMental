@@ -6,6 +6,8 @@ from src.ammunition import AmmoCatalog
 from src.widgetry.drops import randomize_drop
 from src.widgetry.effects import WetEffect, FireEffect
 from src.misc.spranimator import SpriteAnimator
+from src.misc.utils import raycast_around, normalize
+import numpy as np
 
 class Tank(Entity):
     def __init__(self, game, max_durability, **kwargs):
@@ -116,7 +118,9 @@ class Tank(Entity):
         direction_vector = self.game.directions[direction]
         if self.is_exploded:
             return
-        
+        # if self.entity_type == EntityType.PLAYER_TANK:
+        #     theta = math.radians(30)
+        #     raycast_around(vec=direction_vector, theta=theta, n_rays=5, entity=self, distance=5, ignore=[self], debug=True)
         
         movement_is_allowed = True
         #collided_entity = self.game.get_collided_entity(self, direction_vector, movement_distance)
@@ -196,14 +200,12 @@ class Tank(Entity):
     def move_bullet(self, dt):
         pool = self.ammunition.bullet_pool
         for bullet in self.ammunition.bullet_pool.active_bullets:
+            collided_entity = self.get_collision_element(bullet, bullet.velocity, 1)
             bullet.position += bullet.velocity * dt
             # Destroy bullet if it goes off-screen
-            if not self.game.is_on_screen(bullet):                
-                #destroy(bullet)
-                #bullet.owner.bullets_on_screen -= 1
+            if collided_entity == None and not self.game.is_on_screen(bullet):
                 pool.release_bullet(bullet)
                 return
-            collided_entity = self.get_collision_element(bullet, bullet.velocity, 0.5)
             if bullet.visible and collided_entity != None:
                 if hasattr(collided_entity, 'takes_hit'):
                     # This if and break affect the performance - consider fixing it
