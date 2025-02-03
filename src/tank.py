@@ -101,9 +101,12 @@ class Tank(Entity):
     def _destroy_or_respawn(self):        
         is_enemy_tank = self.entity_type is not EntityType.PLAYER_TANK
         if is_enemy_tank:
-            position = self.position            
-            self.destroy()
-            randomize_drop(position)
+            try:
+                position = self.position    # Here is a bug (Remove try catch to reproduce)   
+                self.destroy()
+                randomize_drop(position)
+            except Exception as ex:
+                print(f"Happened error while processing the destroyed enemy tank. Enemy tank object: {self}. Error: {ex}")
         else:
             self.respawn()
 
