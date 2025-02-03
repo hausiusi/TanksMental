@@ -103,9 +103,9 @@ class NPCIntelligence:
             direction_vector = self.owner.direction_vector
             vec = self.next_scan_vector(direction_vector)
             hitinfo = raycast(self.owner.position, vec, self.iq_config.distance, ignore=[self.owner], debug=False)
-
+            
             if hitinfo.hit:
-                entity = hitinfo.entity
+                entity = next((e for e in hitinfo.entities if hasattr(e, "collision_effect") and e.collision_effect == CollisionEffect.BARRIER), None)
                 if hasattr(entity, "entity_type") and entity.entity_type == EntityType.PLAYER_TANK:
                     if self.target_player is None:
                         self.target_player = entity  
