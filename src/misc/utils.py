@@ -172,3 +172,10 @@ def raycast_around(vec, theta, n_rays, entity:Entity, distance=2, ignore=[], deb
                 print(ray_left.entities)
             if ray_right.hit:
                 print(ray_right.entities)
+
+def vectors_are_equal(v1: Vec3, v2: Vec3, tolerance=1e-5):
+    return (
+        abs(v1.x - v2.x) < tolerance and
+        abs(v1.y - v2.y) < tolerance and
+        abs(v1.z - v2.z) < tolerance
+    )

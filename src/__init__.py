@@ -10,3 +10,4 @@ from src.settings import Settings
 from src.startmenu import StartMenu
 from src.tank import Tank
 from src.ammunition import AmmoCatalog
+from src.iq import *

@@ -2,31 +2,27 @@ from ursina import *
 from src.tank import Tank
 from src.levels import load_npcs
 from src.enums import EntityType
-import random
+from src.iq import *
 
 class EnemyTank(Tank):
     def __init__(self, game, **kwargs):
         super().__init__(game, **kwargs)
         self.game = game
-        self.turn_time_counter = 0
-        self.next_turn_time = random.uniform(0.0, 0.5)
         self.least_interval_between_bullets = 0.2
         self.bullet_interval_counter = 0
+        self.npc_config = NPCIqConfig(NPCMissionType.FIND_AND_DESTROY_PLAYER, NPCBehaviour.SHOOT_DEFAULT_BULLET, visibility=180, distance=10)
+        self.npc_iq = NPCIntelligence(self, self.npc_config)
+        self.direction_vector = Vec3(0, -1, 0) # Pointing down
 
     def update(self):
         if self.game.paused:
             return
 
-        # Enemy tank movement logic
-        if self.turn_time_counter > self.next_turn_time:
-            self.direction = random.randint(0, 3)  # Pick a random direction
-            self.turn_time_counter = 0
-            self.next_turn_time = random.uniform(1, 5)
-        self.turn_time_counter += time.dt
+
+        self.direction_vector = self.npc_iq.get_direction()
 
         # Attempt to move the tank in its current direction
-        movement_distance = 0.5
-        self.move(self.direction, movement_distance)
+        self.move(self.direction_vector)
 
         self.bullet_interval_counter += time.dt
 

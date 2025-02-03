@@ -6,8 +6,8 @@ from src.ammunition import AmmoCatalog
 from src.widgetry.drops import randomize_drop
 from src.widgetry.effects import WetEffect, FireEffect
 from src.misc.spranimator import SpriteAnimator
-from src.misc.utils import raycast_around, normalize
-import numpy as np
+from src.misc.utils import vectors_are_equal
+
 
 class Tank(Entity):
     def __init__(self, game, max_durability, **kwargs):
@@ -110,12 +110,8 @@ class Tank(Entity):
     def respawn(self):
         raise Exception("We implement respawn method of Tank entity in derived classes")
 
-    def move(self, direction, movement_distance):
+    def move(self, direction_vector):
         """Move the enemy tank in the specified direction if no collision is detected."""
-        if direction not in self.game.directions:
-            return
-        
-        direction_vector = self.game.directions[direction]
         if self.is_exploded:
             return
         # if self.entity_type == EntityType.PLAYER_TANK:
@@ -177,13 +173,13 @@ class Tank(Entity):
             next_position = self.position + direction_vector * (time.dt * self.speed)
             self.__move(next_position)
 
-        if direction == 0 or direction == 'w':
+        if vectors_are_equal(direction_vector, Vec3(0, 1, 0)):
             self.rotation_z = 0
-        if direction == 1 or direction == 'd':
+        if vectors_are_equal(direction_vector, Vec3(1, 0, 0)):
             self.rotation_z = 90
-        if direction == 2 or direction == 's':
+        if vectors_are_equal(direction_vector, Vec3(0, -1, 0)):
             self.rotation_z = 180
-        if direction == 3 or direction == 'a':
+        if vectors_are_equal(direction_vector, Vec3(-1, 0, 0)):
             self.rotation_z = -90
 
     @staticmethod
@@ -192,20 +188,25 @@ class Tank(Entity):
         try:
             ray = raycast(element.position, direction, ignore=[element], distance=distance)
             if ray.hit:
-                return ray.entity
+                return ray.entity, ray.point
         except Exception as ex:
             pass
-        return None
+        return None, None
 
     def move_bullet(self, dt):
         pool = self.ammunition.bullet_pool
         for bullet in self.ammunition.bullet_pool.active_bullets:
-            collided_entity = self.get_collision_element(bullet, bullet.velocity, 1)
+            collided_entity, collision_point = self.get_collision_element(bullet, bullet.velocity, 1)
+            
             bullet.position += bullet.velocity * dt
             # Destroy bullet if it goes off-screen
             if collided_entity == None and not self.game.is_on_screen(bullet):
                 pool.release_bullet(bullet)
                 return
+            # if collided_entity:
+            #     print(f"Bullet {bullet} hit {collided_entity} at {collision_point}")
+            # else:
+            #     print(f"Bullet {bullet} missed everything")
             if bullet.visible and collided_entity != None:
                 if hasattr(collided_entity, 'takes_hit'):
                     # This if and break affect the performance - consider fixing it

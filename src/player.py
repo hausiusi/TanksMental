@@ -28,6 +28,7 @@ class Player(Tank):
         self.game.spawn(self)
         self.is_exploded = False
         self.texture = self.initial_texture
+        print(f"{self} Initial texture: {self.initial_texture}")
         self.color = color.rgba(self.color.r, self.color.g, self.color.b, 1)
         self.health_bar.visible = True
         self.ammunition.bullet_effect.visible = True
@@ -93,7 +94,7 @@ class Player(Tank):
         if direction != "":
             if not self.move_audio.playing:
                 self.move_audio.play()
-            self.move(direction, movement_distance)        
+            self.move(self.game.directions[direction])             
 
         if buttons_state['shoot'] and self.can_shoot:
             self.ammunition.shoot_bullet(play_sound=True)
