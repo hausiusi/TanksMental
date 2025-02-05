@@ -197,8 +197,11 @@ class Tank(Entity):
         return None, None
 
     def move_bullet(self, dt):
-        pool = self.ammunition.bullet_pool
-        for bullet in self.ammunition.bullet_pool.active_bullets:
+        active_bullets = [] # List of (bullet, pool) tuples
+        for pool in self.ammunition.bullet_pools:
+            for bullet in pool.active_bullets:
+                active_bullets.append((bullet, pool))
+        for bullet, pool in active_bullets:
             collided_entity, collision_point = self.get_collision_element(bullet, bullet.velocity, 1)
             
             bullet.position += bullet.velocity * dt
@@ -206,10 +209,7 @@ class Tank(Entity):
             if collided_entity == None and not self.game.is_on_screen(bullet):
                 pool.release_bullet(bullet)
                 return
-            # if collided_entity:
-            #     print(f"Bullet {bullet} hit {collided_entity} at {collision_point}")
-            # else:
-            #     print(f"Bullet {bullet} missed everything")
+            
             if bullet.visible and collided_entity != None:
                 if hasattr(collided_entity, 'takes_hit'):
                     # This if and break affect the performance - consider fixing it
@@ -233,9 +233,7 @@ class Tank(Entity):
                         else:
                             self.other_damage_dealt += pool.hit_damage
                             
-                        #destroy(bullet)
                         self.ammunition.bullet_pool.release_bullet(bullet)
-                        #bullet.owner.bullets_on_screen -= 1
 
     def update(self):
         self.move_bullet(time.dt)

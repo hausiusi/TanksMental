@@ -119,7 +119,8 @@ class BulletPool:
         return None
 
     def release_bullet(self, bullet):
-        self.active_bullets.remove(bullet)
+        if bullet in self.active_bullets:
+            self.active_bullets.remove(bullet)
         self.pool.append(bullet)
         bullet.visible = False
 

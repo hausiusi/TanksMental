@@ -46,22 +46,25 @@ class PS4Controller(BaseController):
         return len(self.controllers)
 
     def refresh_buttons_state(self):
-        for event in pygame.event.get():
-            if event.type in (pygame.JOYAXISMOTION, pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP, pygame.JOYHATMOTION):
-                joystick_index = event.joy  # Identify which joystick sent the event
-                if joystick_index >= len(self.states):
-                    continue  # Ignore events from unknown joysticks
-                
-                joystick_state = self.states[joystick_index]
-                
-                if event.type == pygame.JOYAXISMOTION:
-                    joystick_state["axis"][event.axis] = round(event.value, 2)
-                elif event.type == pygame.JOYBUTTONDOWN:
-                    joystick_state["buttons"][event.button] = True
-                elif event.type == pygame.JOYBUTTONUP:
-                    joystick_state["buttons"][event.button] = False
-                elif event.type == pygame.JOYHATMOTION:
-                    joystick_state["hat"][event.hat] = event.value
+        try:
+            for event in pygame.event.get():
+                if event.type in (pygame.JOYAXISMOTION, pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP, pygame.JOYHATMOTION):
+                    joystick_index = event.joy  # Identify which joystick sent the event
+                    if joystick_index >= len(self.states):
+                        continue  # Ignore events from unknown joysticks
+                    
+                    joystick_state = self.states[joystick_index]
+                    
+                    if event.type == pygame.JOYAXISMOTION:
+                        joystick_state["axis"][event.axis] = round(event.value, 2)
+                    elif event.type == pygame.JOYBUTTONDOWN:
+                        joystick_state["buttons"][event.button] = True
+                    elif event.type == pygame.JOYBUTTONUP:
+                        joystick_state["buttons"][event.button] = False
+                    elif event.type == pygame.JOYHATMOTION:
+                        joystick_state["hat"][event.hat] = event.value
+        except Exception as ex:
+            print(f"Can't refresh inputs state {ex}")
 
     def get_buttons_state(self, player_index: int = 0):
         if player_index >= len(self.states):

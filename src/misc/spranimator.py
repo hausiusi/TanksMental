@@ -29,6 +29,8 @@ class SpriteAnimator:
             for frame in self.frames:
                 entity.texture = frame  # Update texture
                 yield from wait(self.delay)  # Wait for the delay duration.
+            # Wait extra time after animation finishes
+            wait(0.5)
             if callable(callback):
                 callback()
 
@@ -40,7 +42,8 @@ class SpriteAnimator:
             coroutine = self.active_coroutines.popleft()
             try:
                 next(coroutine)
-                self.active_coroutines.append(coroutine)  # Put it back in the queue if still active.
+                # Put it back in the queue if still active.
+                self.active_coroutines.append(coroutine)  
             except StopIteration:
                 # Coroutine is done; do not re-add it to the deque.
                 pass 
