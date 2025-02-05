@@ -275,6 +275,12 @@ class Game:
 
     def total_cleanup(self):
         """Removes everything, including terrain elements, player objects and droppings"""
+        print(">>>>Entities Before the cleanup<<<<")
+        for entity in scene.entities:
+            print(f"Entity: {entity}, Position: {entity.position}")
+
+        print("----------------------------------------------------")
+
         for tank in self.tanks:
             tank.on_destroy = lambda: None # Disabling on destroy spawn more or show game complete actions
             tank.destroy()
@@ -285,7 +291,7 @@ class Game:
         self.start_menu.tank_avatars.clear()
         self._set_stat_texts_visible(False)
 
-        print("Entities left on the scene")
+        print(">>>>Entities afetr the cleanup<<<<")
         for entity in scene.entities:
             print(f"Entity: {entity}, Position: {entity.position}")
 

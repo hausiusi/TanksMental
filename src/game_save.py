@@ -77,12 +77,13 @@ class SaveManager:
         players = []
         for i, player_props in enumerate(data['players']):
             controller, controller_id = get_player_controller_and_index(i)
+            id = player_props['player_id']
             player = Player(
                     game=game,
                     max_durability=player_props['max_durability'],
                     controller=controller,
                     controller_id=controller_id,
-                    player_id=player_props['player_id'],
+                    player_id=id,
                     model='quad',
                     texture=player_props['initial_texture'],
                     z=0,
@@ -97,6 +98,7 @@ class SaveManager:
                     is_exploded=False,
                     remove_counter=0,
                     remove_limit=3,
+                    name = f"Player{id}"
                 )
             
             player.durability = player_props['durability']
@@ -104,7 +106,7 @@ class SaveManager:
             player.tanks_damage_dealt = player_props['tanks_damage']
             player.other_damage_dealt = player_props['other_damage']
 
-            ammunition = AmmoCatalog(owner=player)
+            ammunition = player.ammunition
             ammunition.bullet_pools
             for i, pool_props in enumerate(player_props['ammunition']["bullet_pools"]):
                 if len(ammunition.bullet_pools) < i:
@@ -114,7 +116,6 @@ class SaveManager:
                 pool.hit_damage = pool_props['hit_damage']
                 pool.bullet_speed = pool_props['bullet_speed']
             ammunition.deploy_pool.recover_from_save(player_props['ammunition']['deploy_pool'])
-            player.ammunition = ammunition
 
             players.append(player)
         return players, data['level']

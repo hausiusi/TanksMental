@@ -357,5 +357,6 @@ class AmmoCatalog:
     def destroy(self):
         for bullet_pool in self.bullet_pools:
             bullet_pool.destroy_bullets()
+        destroy(self.bullet_effect)
         destroy(self.shoot_sound0)
         destroy(self.shoot_sound1)
