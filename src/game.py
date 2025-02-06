@@ -357,12 +357,12 @@ class Game:
                         durability = 1
                         name = f'sand_{x}_{y}'
                     elif val == 8:
-                        tile_texture = 'assets/images/gas_station0.png'
+                        tile_texture = 'assets/images/base.png'
                         collision_effect = CollisionEffect.NO_EFFECT
                         entity_type = EntityType.BASE
                         takes_hit = True
                         durability = 1
-                        name = f'gas_station_{x}_{y}'
+                        name = f'base_{x}_{y}'
 
                     tile = Entity(
                         name=name,
