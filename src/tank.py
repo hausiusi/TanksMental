@@ -4,7 +4,7 @@ from src.enums import CollisionEffect, EntityType, DropEffect
 from src.misc.timer import Timer
 from src.ammunition import AmmoCatalog
 from src.widgetry.drops import randomize_drop
-from src.widgetry.effects import WetEffect, FireEffect
+from src.widgetry.effects import WetEffect, FireEffect, AimEffect
 from src.misc.spranimator import SpriteAnimator
 from src.misc.utils import vectors_are_equal
 
@@ -31,9 +31,10 @@ class Tank(Entity):
         self.wet_damage_timer = Timer(timeout=5, counts=1, tick_callback=self.apply_wet_damage, end_callback=self.stop_wet_damage)
         self.slow_down_timer = Timer(timeout=0.2, counts=1, tick_callback=self.apply_slow_down, end_callback=self.stop_slow_down)
 
-        self.ammunition = AmmoCatalog(self)
         self.water_effect = WetEffect(self)
         self.fire_effect = FireEffect(self)
+        self.aim_effect = AimEffect(self, position=(0, 1))
+        self.ammunition = AmmoCatalog(self)
 
         self.boss_audio = Audio('assets/audio/boss.ogg', loop=True, volume=0.5, autoplay=False)
         if self.entity_type == EntityType.BOSS:
@@ -95,6 +96,9 @@ class Tank(Entity):
             self.color = color.rgba(self.color.r, self.color.g, self.color.b, 0.5)
             self.health_bar.visible = False
             self.ammunition.bullet_effect.visible = False
+            self.aim_effect.visible = False
+            self.water_effect.visible = False
+            self.fire_effect.visible = False
             self.explosion_animation.animate(self, self._destroy_or_respawn)  
             self.deaths += 1
 

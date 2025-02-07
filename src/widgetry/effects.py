@@ -45,3 +45,14 @@ class BulletEffect(Entity):
             visible=True,
             **kwargs
         )
+
+class AimEffect(Entity):
+    def __init__(self, parent_entity=None, **kwargs):
+        super().__init__(parent = parent_entity,
+                         texture="assets/images/aim.png",
+                         model="quad",
+                         color=color.white,
+                         z=-0.1,
+                         scale=(0.4, 0.4),
+                         visible=False,
+                         **kwargs)

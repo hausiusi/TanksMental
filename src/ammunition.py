@@ -244,6 +244,7 @@ class Deployables:
         deployable_key = self.deployable_keys[index]  # Access by index from the list
         self.active_deployable = self.deployables[deployable_key]
         print(f"Active deployable: {deployable_key}")
+        self.active_deployable.owner.aim_effect.visible = isinstance(self.active_deployable, BuildingBlockDeployer)
 
     def next_deployable(self):
         self.chosen_deployable_index += 1
