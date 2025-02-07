@@ -188,6 +188,7 @@ class Deployable(BaseDeployable):
             return
         self.items_count -= 1
         deployed_object = self.deploy_method()
+        self.owner.game.terrain_entities.append(deployed_object)
         return deployed_object
 
 class LandmineDeployer(Deployable):

@@ -108,7 +108,7 @@ class Tank(Entity):
             try:
                 position = self.position    # Here is a bug (Remove try catch to reproduce)   
                 self.destroy()
-                randomize_drop(position)
+                randomize_drop(position, self.game)
             except Exception as ex:
                 print(f"Happened error while processing the destroyed enemy tank. Enemy tank object: {self}. Error: {ex}")
         else:

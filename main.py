@@ -55,6 +55,7 @@ def update():
     if timer_counter > update_interval:
         refresh_stats()
         timer_counter = 0
+        print(f"Terrain elements {len(game.terrain_entities)}")
 
     if dt > 0.02:
         print(f"The frame rate is low {1 / dt}")

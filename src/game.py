@@ -381,8 +381,16 @@ class Game:
                         render_queue=1,
                         color = color.Color(1,1,1,1)
                     )
-                    self.terrain_entities.append(tile)
 
+                    # The trick below t=tile forces the interpreter to take the current value of the tile
+                    # When lambda is created, otherwise it takes the last "tile" value
+                    tile.on_destroy = lambda t=tile: self.remove_terrain_entity(t)
+                    self.terrain_entities.append(tile)                    
+
+    def remove_terrain_entity(self, entity):
+        if entity in self.terrain_entities: 
+            self.terrain_entities.remove(entity)
+        
     @property
     def level(self):
         return self.level_index + 1

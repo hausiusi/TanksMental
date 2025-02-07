@@ -47,7 +47,7 @@ class BuildingBlockDrop(SupplyDrop):
         super().__init__(color=color.white50, texture="assets/images/white_wall.png", drop_effect=DropEffect.BUILDING_BLOCK_PICK, **kwargs)
         outline=Outline(parent_entity=self, scale=(1.1, 1.1))
 
-def randomize_drop(position):
+def randomize_drop(position, game):
     drop_list = [
         GunDrop,
         FastBulletDrop,
@@ -55,6 +55,8 @@ def randomize_drop(position):
         LandmineDrop,
         BuildingBlockDrop,
     ]
-
-    random.choice(drop_list)(position=position)
+    
+    entity = random.choice(drop_list)(position=position)
+    entity.on_destroy = lambda e=entity: game.remove_terrain_entity(e)
+    game.terrain_entities.append(entity)
     
