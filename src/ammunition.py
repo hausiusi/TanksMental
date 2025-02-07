@@ -80,15 +80,20 @@ class Bullet(Entity):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.entity_type=EntityType.BULLET
+        self.pool_origin = None
 
 class BulletPool:
     def __init__(self, owner, pool_size, hit_damage, bullet_speed, shoot_sound, bullet):
         if pool_size < 1:
             raise Exception("BulletPool object must have size 1 or more")
-        self.bullet_blueprint = bullet
-        self.texture = self.bullet_blueprint.texture
-        self.bullet_blueprint.name = f"Bullet blueprint. Owner: {owner}"
-        self.pool = [duplicate(self.bullet_blueprint) for _ in range(pool_size)]
+        self.bullet_prefab = bullet
+        self.texture = self.bullet_prefab.texture
+        self.bullet_prefab.name = f"Bullet blueprint. Owner: {owner}"
+        self.pool = []
+        for _ in range(pool_size):
+            bullet = duplicate(self.bullet_prefab)
+            bullet.pool_origin = self.pool
+            self.pool.append(bullet)
         self.active_bullets = []
         self.size = pool_size
         self.hit_damage = hit_damage
@@ -106,7 +111,9 @@ class BulletPool:
         self.size = value
         if delta > 0:
             for _ in range(delta):
-                self.pool.append(duplicate(self.bullet_blueprint))
+                bullet = duplicate(self.bullet_prefab)
+                bullet.pool_origin = self.pool
+                self.pool.append(bullet)
         elif delta < 0:
             for _ in range(delta):
                 self.pool.pop()
@@ -121,8 +128,8 @@ class BulletPool:
     def release_bullet(self, bullet):
         if bullet in self.active_bullets:
             self.active_bullets.remove(bullet)
-        self.pool.append(bullet)
-        bullet.visible = False
+            bullet.pool_origin.append(bullet) # append the bullet to it's original pool
+            bullet.visible = False
 
     def increase_pool(self):
         self.pool.append(duplicate(self.pool[0]))
@@ -138,10 +145,10 @@ class BulletPool:
             destroy(bullet)
         self.active_bullets.clear()
 
-        if self.bullet_blueprint:
-            print(f"Destroying blueprint: {self.bullet_blueprint}")
-            destroy(self.bullet_blueprint)
-            self.bullet_blueprint = None  # Clear reference
+        if self.bullet_prefab:
+            print(f"Destroying blueprint: {self.bullet_prefab}")
+            destroy(self.bullet_prefab)
+            self.bullet_prefab = None  # Clear reference
 
         if self.shoot_sound:
             print(f"Destroying sound: {self.shoot_sound}")
