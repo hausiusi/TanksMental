@@ -11,13 +11,13 @@ class Settings:
 
     def initialize(self):
         # Screen settings
-        self.screen_left = -7
-        self.screen_right = 7
-        self.screen_top = 5
-        self.screen_bottom = -5
+        self.screen_left = -9
+        self.screen_right = 9
+        self.screen_top = 6
+        self.screen_bottom = -6
         self.horizontal_game_area = self.screen_right - self.screen_left
         self.vertical_game_area = self.screen_top - self.screen_bottom
-        self.camera_fov = 12
+        self.camera_fov = 14.1
         self.fullscreen = True
         self.aspect_ratio = window.aspect_ratio
         self.horizontal_span = self.camera_fov * self.aspect_ratio

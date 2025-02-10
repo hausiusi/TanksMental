@@ -48,6 +48,21 @@ class SpriteAnimator:
                 # Coroutine is done; do not re-add it to the deque.
                 pass 
 
+class AnimatedTile(Entity):
+    def __init__(self, position, animation_frames, duration):
+        super().__init__(model="quad", texture=animation_frames[0], position=position, scale=1)
+        self.frames = animation_frames
+        self.duration = duration
+        self.current_frame = 0
+        self.timer = 0
+
+    def update(self):
+        self.timer += time.dt
+        if self.timer >= self.duration:
+            self.timer = 0
+            self.current_frame = (self.current_frame + 1) % len(self.frames)
+            self.texture = self.frames[self.current_frame]
+
        
 if __name__ == '__main__':
     app = Ursina()

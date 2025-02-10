@@ -1,7 +1,7 @@
 from ursina import *
 from typing import List
 from src.settings import Settings
-from src.levels import load_map, get_levels_count
+from src.levels import get_levels_count
 from src.enums import CollisionEffect, EntityType
 from src.npc import NpcSpawner
 from src.startmenu import StartMenu
@@ -9,10 +9,12 @@ from src.player import Player
 from src.game_save import SaveManager
 from src.controller import PS4Controller
 from datetime import datetime
+from src.tileloader import TileLoader
 
 class Game:
     def __init__(self):
         self.settings = Settings()
+        self.tileloader = TileLoader(self, 1)
         camera.orthographic = True
         camera.fov = self.settings.camera_fov
         window.size = self.settings.window_size
@@ -269,7 +271,8 @@ class Game:
 
     def destroy_terrain_elements(self):
         """Removes terrain elements. Doesn't affect the player objects"""
-        for entity in self.terrain_entities:
+        tmp = [e for e in self.terrain_entities]
+        for entity in tmp:
             destroy(entity)
         self.terrain_entities = []
 
@@ -298,94 +301,7 @@ class Game:
         print("----------------------------------------------------")
 
     def create_tile_map(self):
-        level_map = load_map(self.level_index)
-        for y, row in enumerate(level_map):
-            for x, val in enumerate(row):
-                # Position the tile such that the center is (0, 0)
-                # Tile positions will be adjusted based on the grid center
-                if val != 0:
-                    pos_x = (x - len(row) // 2) * self.tile_size
-                    pos_y = -(y - len(level_map) // 2) * self.tile_size
-
-                    durability = 100
-                    takes_hit = False
-                    damaging = 0
-                    collision_effect = CollisionEffect.NO_EFFECT
-                    effect_strength = 0
-                    name = ""
-                    entity_type=EntityType.TERRAIN
-
-                    # Create a tile (Entity with Quad mesh)
-                    if val == 1:
-                        tile_texture = 'assets/images/grass.png'
-                        collision_effect = CollisionEffect.SLOW_DOWN
-                        effect_strength = 50
-                        name = f'grass_{x}_{y}'
-                    elif val == 2:
-                        tile_texture = 'assets/images/wall0.png'
-                        collision_effect = CollisionEffect.BARRIER
-                        durability = 5
-                        takes_hit = True
-                        name = f'wall_{x}_{y}'
-                    elif val == 3:
-                        tile_texture = 'assets/images/water0.png'
-                        collision_effect = CollisionEffect.DAMAGE_WET
-                        effect_strength = 90
-                        name = f'water_{x}_{y}'
-                    elif val == 4:
-                        tile_texture = 'assets/images/fire0.png'
-                        collision_effect = CollisionEffect.DAMAGE_BURN
-                        effect_strength = 1
-                        name = f'fire_{x}_{y}'
-                        damaging = 1
-                    elif val == 5:
-                        tile_texture = 'assets/images/stones0.png'
-                        collision_effect = CollisionEffect.SLOW_DOWN
-                        effect_strength = 40
-                        name = f'stones_{x}_{y}'
-                    elif val == 6:
-                        tile_texture = 'assets/images/white_wall.png'
-                        collision_effect = CollisionEffect.BARRIER
-                        takes_hit = True
-                        durability = 10
-                        name = f'white_wall_{x}_{y}'
-                    elif val == 7:
-                        tile_texture = 'assets/images/sand.png'
-                        collision_effect = CollisionEffect.SLOW_DOWN
-                        effect_strength = 30
-                        takes_hit = True
-                        durability = 1
-                        name = f'sand_{x}_{y}'
-                    elif val == 8:
-                        tile_texture = 'assets/images/base.png'
-                        collision_effect = CollisionEffect.NO_EFFECT
-                        entity_type = EntityType.BASE
-                        takes_hit = True
-                        durability = 1
-                        name = f'base_{x}_{y}'
-
-                    tile = Entity(
-                        name=name,
-                        model='quad',
-                        entity_type=entity_type,
-                        z = 0,                    
-                        texture=tile_texture,
-                        scale=(self.tile_size - 0.001, self.tile_size - 0.001),
-                        position=(pos_x, pos_y),
-                        collider='box',
-                        durability=durability,
-                        takes_hit=takes_hit,
-                        damaging=damaging,
-                        collision_effect=collision_effect,
-                        effect_strength=effect_strength,
-                        render_queue=1,
-                        color = color.Color(1,1,1,1)
-                    )
-
-                    # The trick below t=tile forces the interpreter to take the current value of the tile
-                    # When lambda is created, otherwise it takes the last "tile" value
-                    tile.on_destroy = lambda t=tile: self.remove_terrain_entity(t)
-                    self.terrain_entities.append(tile)                    
+        self.tileloader.load(f"assets/levels/level{self.level}.tmx")             
 
     def remove_terrain_entity(self, entity):
         if entity in self.terrain_entities: 

@@ -287,9 +287,9 @@ class AmmoCatalog:
         texture_bullet0 = reduce_texture_resolution(texture_bullet0, 5)
         texture_bullet1 = reduce_texture_resolution(texture_bullet1, 5)
         self.bullet_pools: List[BulletPool] = []
-        bullet = Bullet(owner=owner, model='quad', 
+        bullet = Bullet(owner=owner, model='cube', 
                    texture=texture_bullet0, 
-                   color=color.white, scale=(0.1, 0.1), 
+                   color=color.white, scale=(0.1, 0.1, 0.1), 
                    z= 0.1,
                    visible=False)
         self.bullet_pools.append(BulletPool(owner=owner, 

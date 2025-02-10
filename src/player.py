@@ -163,13 +163,13 @@ class Player(Tank):
             pos_x = self.game.left_edge
             pos_y = 0.3            
         elif self.player_id == 1:
-            pos_x = self.game.right_edge - 0.15
+            pos_x = self.game.right_edge - 0.126
             pos_y = 0.3
         elif self.player_id == 2:
             pos_x = self.game.left_edge
             pos_y = -0.1
         elif self.player_id == 3:
-            pos_x = self.game.right_edge - 0.15
+            pos_x = self.game.right_edge - 0.126
             pos_y = -0.1
 
         # Place the player icon above the stats
