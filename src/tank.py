@@ -195,10 +195,10 @@ class Tank(Entity):
         try:
             ray = raycast(element.position, direction, ignore=[element], distance=distance)
             if ray.hit:
-                return ray.entity, ray.point
+                return ray
         except Exception as ex:
             pass
-        return None, None
+        return None
 
     def move_bullet(self, dt):
         active_bullets = [] # List of (bullet, pool) tuples
@@ -206,38 +206,44 @@ class Tank(Entity):
             for bullet in pool.active_bullets:
                 active_bullets.append((bullet, pool))
         for bullet, pool in active_bullets:
-            collided_entity, collision_point = self.get_collision_element(bullet, bullet.velocity, 1)
-            
+            ray = self.get_collision_element(bullet, bullet.velocity, 1)
             bullet.position += bullet.velocity * dt
+            collided_entities, collision_point = [], (0, 0)
+            if ray is not None:
+                collided_entities, collision_point = ray.entities, ray.point
+            # Find the first collided entity that takes hit
+            collided_entity = None
+            for entity in collided_entities:
+                if hasattr(entity, 'takes_hit'):
+                    collided_entity = entity
             # Destroy bullet if it goes off-screen
             if collided_entity == None and not self.game.is_on_screen(bullet):
                 pool.release_bullet(bullet)
                 return
             
             if bullet.visible and collided_entity != None:
-                if hasattr(collided_entity, 'takes_hit'):
-                    # This if and break affect the performance - consider fixing it
-                    if (collided_entity.entity_type == self.ammunition.owner.entity_type 
-                        or collided_entity.entity_type == EntityType.BOSS and self.ammunition.owner.entity_type == EntityType.ENEMY_TANK
-                        or collided_entity.entity_type == EntityType.ENEMY_TANK and self.entity_type == EntityType.BOSS):
-                        break
-                    if collided_entity.takes_hit:
-                        collided_entity.durability -= bullet.hit_damage
-                        if collided_entity.durability <= 0:
-                            if hasattr(collided_entity, 'is_tank'):
-                                    if not collided_entity.is_exploded:
-                                        self.kills += 1
-                                        collided_entity.check_destroy()
-                            else:
-                                destroy(collided_entity)
-                                if collided_entity.entity_type == EntityType.BASE:
-                                    self.game.show_game_over()
-                        if hasattr(collided_entity, 'is_tank') and not collided_entity.is_exploded:
-                            self.tanks_damage_dealt += pool.hit_damage
+                # This if and break affect the performance - consider fixing it
+                if (collided_entity.entity_type == self.ammunition.owner.entity_type 
+                    or collided_entity.entity_type == EntityType.BOSS and self.ammunition.owner.entity_type == EntityType.ENEMY_TANK
+                    or collided_entity.entity_type == EntityType.ENEMY_TANK and self.entity_type == EntityType.BOSS):
+                    break
+                if collided_entity.takes_hit:
+                    collided_entity.durability -= bullet.hit_damage
+                    if collided_entity.durability <= 0:
+                        if hasattr(collided_entity, 'is_tank'):
+                                if not collided_entity.is_exploded:
+                                    self.kills += 1
+                                    collided_entity.check_destroy()
                         else:
-                            self.other_damage_dealt += pool.hit_damage
-                            
-                        self.ammunition.bullet_pool.release_bullet(bullet)
+                            destroy(collided_entity)
+                            if collided_entity.entity_type == EntityType.BASE:
+                                self.game.show_game_over()
+                    if hasattr(collided_entity, 'is_tank') and not collided_entity.is_exploded:
+                        self.tanks_damage_dealt += pool.hit_damage
+                    else:
+                        self.other_damage_dealt += pool.hit_damage
+                        
+                    self.ammunition.bullet_pool.release_bullet(bullet)
 
     def update(self):
         self.move_bullet(time.dt)
