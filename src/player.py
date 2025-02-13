@@ -28,14 +28,22 @@ class Player(Tank):
         self.game.spawn(self)
         self.is_exploded = False
         self.texture = self.initial_texture
-        print(f"{self} Initial texture: {self.initial_texture}")
         self.color = color.rgba(self.color.r, self.color.g, self.color.b, 1)
         self.health_bar.visible = True
         self.ammunition.bullet_effect.visible = True
         self.ammunition.deploy_pool.choose_deployable(self.ammunition.deploy_pool.chosen_deployable_index)
         self.remove_counter = 0
         self.durability = self.max_durability
-        self.rotation_z = 0 # Respawn pointing up
+        self.rotation_z = 0  # Respawn pointing up
+
+        # Fully force Ursina to "forget" the previous render state
+        # Otherwise the player has a small gray platform under it
+        self.z = getattr(self, "_original_z", 0)
+        self.render_queue = 0
+        self.model = None 
+        self.model = 'quad'  
+        self.disable()
+        invoke(self.enable, delay=0.01)  # Small delay ensures proper reprocessing
 
     def update(self):
         if self.game.over:

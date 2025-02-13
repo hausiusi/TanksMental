@@ -24,9 +24,8 @@ class Tank(Entity):
         self.affected_speed = 0
         self.collision_effect = CollisionEffect.BARRIER
         self.is_burn_damaging = False
-        self.deaths = 0
+        self.deaths = 0        
         self.explosion_animation = SpriteAnimator('assets/animations/explosion', delay=0.05)
-
         self.burn_damage_timer = Timer(timeout=1, counts=10, tick_callback=self.apply_burn_damage, end_callback=self.stop_burn_damage)
         self.wet_damage_timer = Timer(timeout=5, counts=1, tick_callback=self.apply_wet_damage, end_callback=self.stop_wet_damage)
         self.slow_down_timer = Timer(timeout=0.2, counts=1, tick_callback=self.apply_slow_down, end_callback=self.stop_slow_down)

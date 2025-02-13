@@ -25,12 +25,15 @@ class SpriteAnimator:
 
     def animate(self, entity, callback=None):
         """Start animation for the given entity."""
+        entity._original_z = entity.z
+        entity.z = -0.1
+        entity.render_queue = 2
         def run_animation():
             for frame in self.frames:
                 entity.texture = frame  # Update texture
                 yield from wait(self.delay)  # Wait for the delay duration.
             # Wait extra time after animation finishes
-            wait(0.5)
+            yield from wait(0.1)
             if callable(callback):
                 callback()
 
