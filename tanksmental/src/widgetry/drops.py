@@ -1,7 +1,7 @@
 from ursina import *
-from src.enums import EntityType, DropEffect
-from src.widgetry.effects import Outline
-from src.misc.timer import Timer
+from ..enums import EntityType, DropEffect
+from .effects import Outline
+from ..misc.timer import Timer
 import random
 
 class SupplyDrop(Entity):

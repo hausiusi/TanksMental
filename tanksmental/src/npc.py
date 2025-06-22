@@ -1,8 +1,8 @@
 from ursina import *
-from src.tank import Tank
-from src.levels import load_npcs
-from src.enums import EntityType
-from src.iq import *
+from .tank import Tank
+from .levels import load_npcs
+from .enums import EntityType
+from .iq import *
 
 class EnemyTank(Tank):
     def __init__(self, game, **kwargs):

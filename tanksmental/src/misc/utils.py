@@ -4,6 +4,39 @@ import math
 from pathlib import Path
 from ursina import Texture, Color, Vec3, raycast, Entity
 
+from platformdirs import user_data_dir
+import os
+import pkg_resources
+from panda3d.core import Filename
+
+APP_NAME = "TanksMental"
+APP_AUTHOR = "Hausiusi"
+
+def get_save_folder():
+    folder = user_data_dir(APP_NAME, APP_AUTHOR) + '/saves/game'
+    os.makedirs(folder, exist_ok=True)
+    print(f"Saves folder is: {folder}")
+    return folder
+
+def to_resource_name(name: str):
+    """
+    Converts a string to a resource name by replacing spaces with underscores and converting to lowercase.
+    
+    Args:
+        name (str): The input string to convert.
+    
+    Returns:
+        str: The converted resource name.
+    """
+    path = pkg_resources.resource_filename(APP_NAME.lower(), name)
+    print(f'Path repr: {repr(path)}')
+    p3d_path = path.replace('\\', '/')
+    return p3d_path
+
+#def get_files_in_folder(subfolder="game"):
+#    folder_path = os.path.join(get_save_folder(), subfolder)
+#    return [file for file in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, file))]
+
     
 def _serialize_data(data):
     """Convert non-serializable objects to JSON-compatible types."""

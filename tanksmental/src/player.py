@@ -1,9 +1,9 @@
 from ursina import *
-from src.widgetry.healthbar import HealthBar
-from src.tank import Tank
-from src.controller import BaseController
-from src.enums import EntityType
-from src.widgetry.bars import LandmineBar, BuildingBlockBar
+from .widgetry.healthbar import HealthBar
+from .tank import Tank
+from .controller import BaseController
+from .enums import EntityType
+from .widgetry.bars import LandmineBar, BuildingBlockBar
 
 class Player(Tank):
     def __init__(self, game, controller: BaseController, controller_id, player_id: int, **kwargs):

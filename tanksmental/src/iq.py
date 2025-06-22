@@ -2,8 +2,8 @@ from ursina import Vec3, Entity, time, raycast
 import math
 import numpy as np
 from enum import Enum
-from src.misc.utils import rotate_vector_around_y
-from src.enums import *
+from .misc.utils import rotate_vector_around_y
+from .enums import *
 import random
 
 

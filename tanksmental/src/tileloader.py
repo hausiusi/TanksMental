@@ -1,8 +1,8 @@
 from ursina import *
 import pytmx
-from src.enums import *
+from .enums import *
 import os
-from src.widgetry.drops import randomize_drop
+from .widgetry.drops import randomize_drop
 
 class TileLoader:
     def __init__(self, game, tile_size):

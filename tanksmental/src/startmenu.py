@@ -1,12 +1,12 @@
 from ursina import*
 
-from src.game_save import SaveManager
-from src.settings import Settings
-from src.controller import PS4Controller, KeyboardController, BaseController
-from src.misc.utils import get_files_in_folder, json_load
-from src.character import IronGuard, TrailBlazer, PlayerCharacter
-from src.menu.menuentry import Menu
-from src.widgetry.effects import Outline
+from .game_save import SaveManager
+from .settings import Settings
+from .controller import PS4Controller, KeyboardController, BaseController
+from .misc.utils import get_files_in_folder,  json_load, get_save_folder, to_resource_name
+from .character import IronGuard, TrailBlazer, PlayerCharacter
+from .menu.menuentry import Menu
+from .widgetry.effects import Outline
 
 class StartMenuElement(Entity):
     def __init__(self, scale=(0.5, 0.5), **kwargs):
@@ -59,14 +59,16 @@ class BaseControllerAvatar(Entity):
 class JoystickAvatar(BaseControllerAvatar):
     def __init__(self, controller:BaseController, **kwargs):
         super().__init__(
-            texture='../assets/images/joystick.png',
+            texture='assets/images/joystick.png',
             controller=controller,
             **kwargs)
 
 class KeyboardAvatar(BaseControllerAvatar):
     def __init__(self, controller:BaseController, **kwargs):
+        tex = load_texture('images/kb.png')
+        print('Loaded texture object:', tex)
         super().__init__(
-            texture='../assets/images/keyboard.png',
+            texture=tex,
             controller=controller,
             **kwargs)
 
@@ -103,6 +105,7 @@ class StartMenu:
             color.pink,
             color.green,
         ]
+
         self.game = game
         self.start_new_game_callback = start_game_callback
         self.continue_game_callback = continue_game_callback
@@ -134,7 +137,7 @@ class StartMenu:
             },
         )
         
-        files = get_files_in_folder('saves/game')
+        files = get_files_in_folder(get_save_folder())
 
         options = []
         for file in files:

@@ -1,17 +1,18 @@
 from ursina import *
-from src.widgetry.effects import BulletEffect
-from src.enums import EntityType, CollisionEffect
-from src.misc.timer import Timer
-from src.misc.spranimator import SpriteAnimator
+from .widgetry.effects import BulletEffect
+from .enums import EntityType, CollisionEffect
+from .misc.timer import Timer
+from .misc.spranimator import SpriteAnimator
 from PIL import Image
 from typing import List
 from abc import ABC, abstractmethod
+from .misc.utils import to_resource_name
 
 class Landmine(Entity):
     def __init__(self, owner:Entity, explosion_animation : SpriteAnimator, **kwargs):
         super().__init__(
             model='quad', 
-            texture='assets/images/landmine.png',            
+            texture=to_resource_name('assets/images/landmine.png'),            
             collider='box',            
             color=color.white, 
             scale=(0.3, 0.3), 
@@ -19,9 +20,9 @@ class Landmine(Entity):
             **kwargs
             )
         
-        self.deploy_sound = Audio('assets/audio/landmine_drop.ogg', parent=self, autoplay=False, volume=1.0)
-        self.activation_sound = Audio('assets/audio/landmine_activation.ogg', parent=self,autoplay=False, volume=0.2)
-        self.explosion_sound = Audio('assets/audio/landmine_explosion.ogg', parent=self, autoplay=False, volume=1.0)
+        self.deploy_sound = Audio(to_resource_name('assets/audio/landmine_drop.ogg'), parent=self, autoplay=False, volume=1.0)
+        self.activation_sound = Audio(to_resource_name('assets/audio/landmine_activation.ogg'), parent=self,autoplay=False, volume=0.2)
+        self.explosion_sound = Audio(to_resource_name('assets/audio/landmine_explosion.ogg'), parent=self, autoplay=False, volume=1.0)
         self.effect_strength=50
         self.entity_type=EntityType.LANDMINE
         self.collision_effect=CollisionEffect.NO_EFFECT
@@ -63,7 +64,7 @@ class BuildingBlock(Entity):
                          model='quad',
                             entity_type=EntityType.TERRAIN,
                             z = 0,                    
-                            texture='assets/images/white_wall.png',
+                            texture=to_resource_name('assets/images/white_wall.png'),
                             scale=(self.tile_size - 0.001, self.tile_size - 0.001),
                             position=(owner.x, owner.y),
                             collider='box',
@@ -194,7 +195,7 @@ class Deployable(BaseDeployable):
 class LandmineDeployer(Deployable):
     def __init__(self, owner:Entity, max_size:int):
         self.owner = owner  
-        self.landmine_explosion_animation = SpriteAnimator('assets/animations/landmine_explosion', delay=0.04)     
+        self.landmine_explosion_animation = SpriteAnimator(to_resource_name('assets/animations/landmine_explosion'), delay=0.04)     
         def deploy_object():
             return Landmine(owner=self.owner,
                             explosion_animation=self.landmine_explosion_animation, visible=True)
@@ -277,8 +278,8 @@ class AmmoCatalog:
         self.shoot_sound1 = Audio("assets/audio/shoot1.wav", autoplay=False, volume=1.0)
         self.deploy_pool = Deployables(owner=owner)
 
-        texture_bullet0 = load_texture('assets/images/bullet0.png')
-        texture_bullet1 = load_texture('assets/images/bullet1.png')
+        texture_bullet0 = load_texture(to_resource_name('assets/images/bullet0.png'))
+        texture_bullet1 = load_texture(to_resource_name('assets/images/bullet1.png'))
         def reduce_texture_resolution(texture, factor):
             image = Image.open(texture.path)
             image = image.resize((image.width // factor, image.height // factor), Image.LANCZOS)

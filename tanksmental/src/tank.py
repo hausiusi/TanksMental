@@ -1,12 +1,12 @@
 from ursina import *
-from src.widgetry.healthbar import HealthBar
-from src.enums import CollisionEffect, EntityType, DropEffect
-from src.misc.timer import Timer
-from src.ammunition import AmmoCatalog
-from src.widgetry.drops import randomize_drop
-from src.widgetry.effects import WetEffect, FireEffect, AimEffect
-from src.misc.spranimator import SpriteAnimator
-from src.misc.utils import vectors_are_equal
+from .widgetry.healthbar import HealthBar
+from .enums import CollisionEffect, EntityType, DropEffect
+from .misc.timer import Timer
+from .ammunition import AmmoCatalog
+from .widgetry.drops import randomize_drop
+from .widgetry.effects import WetEffect, FireEffect, AimEffect
+from .misc.spranimator import SpriteAnimator
+from .misc.utils import vectors_are_equal
 
 
 class Tank(Entity):

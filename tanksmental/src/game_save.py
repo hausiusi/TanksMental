@@ -1,9 +1,9 @@
 import os
-from src.player import Player
-from src.ammunition import AmmoCatalog, BulletPool
+from .player import Player
+from .ammunition import AmmoCatalog, BulletPool
 from typing import List, Optional, Tuple
-from src.misc.utils import json_load, json_save
-from src.controller import PS4Controller
+from .misc.utils import json_load, json_save
+from .controller import PS4Controller
 
 class SaveManager:
     def __init__(self):

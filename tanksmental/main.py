@@ -1,8 +1,9 @@
 from ursina import *
-from src.player import Player
-from src.game import Game
-from src.controller import KeyboardController, PS4Controller
-from src.enums import EntityType
+from .src.player import Player
+from .src.game import Game
+from .src.controller import KeyboardController, PS4Controller
+from .src.enums import EntityType
+import pkg_resources
 
 
 app = Ursina()
@@ -67,5 +68,8 @@ def input(key):
         EditorCamera(enabled=is_edit_mode)  # Enable/disable the editor camera
         print("Edit mode:", is_edit_mode)
 
-
-app.run()
+def main():
+    global app
+    application.asset_folder = pkg_resources.resource_filename('tanksmental', 'assets')
+    print(f"Assets folder: {application.asset_folder}. Exists: {os.path.exists(application.asset_folder)}")
+    app.run()

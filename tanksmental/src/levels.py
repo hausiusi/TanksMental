@@ -1,5 +1,5 @@
 from ursina import *
-from src.enums import EntityType
+from .enums import EntityType
 
 npcs = [
             [

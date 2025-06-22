@@ -1,15 +1,15 @@
 from ursina import *
 from typing import List
-from src.settings import Settings
-from src.levels import get_levels_count
-from src.enums import CollisionEffect, EntityType
-from src.npc import NpcSpawner
-from src.startmenu import StartMenu
-from src.player import Player
-from src.game_save import SaveManager
-from src.controller import PS4Controller
+from .settings import Settings
+from .levels import get_levels_count
+from .enums import CollisionEffect, EntityType
+from .npc import NpcSpawner
+from .startmenu import StartMenu
+from .player import Player
+from .game_save import SaveManager
+from .controller import PS4Controller
 from datetime import datetime
-from src.tileloader import TileLoader
+from .tileloader import TileLoader
 
 class Game:
     def __init__(self):
@@ -22,7 +22,7 @@ class Game:
         window.fullscreen = self.settings.fullscreen
         window.exit_button.visible = False
         self.tanks = [] # Includes NPC and player tanks
-        self.level_complete_audio = Audio("assets/audio/level_complete.ogg", autoplay=False, volume=1.0)
+        self.level_complete_audio = Audio("../assets/audio/level_complete.ogg", autoplay=False, volume=1.0)
 
         self.players = []
         self.start_menu = StartMenu(self, start_game_callback=self._start_new_game, continue_game_callback=self._continue_game)
